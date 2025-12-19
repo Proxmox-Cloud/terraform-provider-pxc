@@ -69,122 +69,18 @@ make testacc
 
 ```bash
 
-docker run -d \
-  --name ephemeral-s3 \
-  -p 9000:9000 \
-  -e MINIO_ROOT_USER=minioadmin \
-  -e MINIO_ROOT_PASSWORD=minioadmin \
-  quay.io/minio/minio server /data
 
-# create the bucket
-docker exec ephemeral-s3 mc alias set local http://localhost:9000 minioadmin minioadmin
-docker exec ephemeral-s3 mc mb local/tdd-providers
+pip install grpcio-tools-1.76.0
+python -m grpc_tools.protoc -I./protos --python_out=./src/pve_cloud_rpc/protos --grpc_python_out=./src/pve_cloud_rpc/protos ./protos/cloud.proto
+=> add pve_cloud_rpc.protos to cloud_pb2_grpc.py import
 
 
-docker run -d -p 5601:5601 -e AWS_ACCESS_KEY_ID=minioadmin -e AWS_SECRET_ACCESS_KEY=minioadmin \
-  ghcr.io/boring-registry/boring-registry:latest server \
-  --storage-s3-endpoint http://localhost:9000 \
-  --storage-s3-region minio \
-  --storage-s3-bucket tdd-providers \
-  --auth-static-token very-secure-token
+install protocompiler 3 (apt)
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+export PATH="$PATH:$(go env GOPATH)/bin"
 
-
-export GNUPGHOME="$(pwd)/.gnupg"
-mkdir -p "$GNUPGHOME"
-chmod 700 "$GNUPGHOME"
-
-gpg --batch --generate-key <<'EOF'
-Key-Type: RSA
-Key-Length: 2048
-Subkey-Type: RSA
-Subkey-Length: 2048
-Name-Real: Cloud TDD Signing
-Name-Email: noreply@example.invalid
-Expire-Date: 0
-%no-protection
-%commit
-EOF
-
-
-# from python
-VERSION="0.0.1"
-
-export GOOS=linux
-
-ARCH=$(uname -m)
-case "$ARCH" in
-  x86_64) ARCH=amd64 ;;
-  aarch64) ARCH=arm64 ;;
-  armv7l) ARCH=arm ;;
-esac
-
-export GOARCH=$ARCH
-
-
-go build -o terraform-provider-proxmox-cloud_v$VERSION
-
-mkdir -p ~/.tdd-providers/registry.terraform.io/pxc/proxmox-cloud/$VERSION/linux_$ARCH/
-
-mv terraform-provider-proxmox-cloud_v$VERSION ~/.tdd-providers/registry.terraform.io/pxc/proxmox-cloud/$VERSION/linux_$ARCH/
-
-
-
-
-terraform init -plugin-dir='~/.tdd-providers' -upgrade
-
-zip terraform-provider-proxmox-cloud_${VERSION}_linux_$ARCH.zip terraform-provider-proxmox-cloud_v$VERSION README.md
-
-sha256sum terraform-provider-proxmox-cloud_${VERSION}_linux_$ARCH.zip > terraform-provider-proxmox-cloud_${VERSION}_SHA256SUMS
-
-gpg --detach-sign terraform-provider-proxmox-cloud_${VERSION}_SHA256SUMS
-
-# todo: publish to bucket/providers/pxc/proxmox-cloud
-# upload signing key
-
-export AWS_ACCESS_KEY_ID=minioadmin
-export AWS_SECRET_ACCESS_KEY=minioadmin
-export AWS_DEFAULT_REGION=minio
-
-aws s3 cp terraform-provider-proxmox-cloud_0.0.1218143636_linux_amd64.zip s3://tdd-providers/providers/pxc/proxmox-cloud \
-    --endpoint-url http://localhost:9000 \
-    --no-verify-ssl
-
-
-aws s3 cp terraform-provider-proxmox-cloud_0.0.1218143636_SHA256SUMS s3://tdd-providers/providers/pxc/proxmox-cloud \
-    --endpoint-url http://localhost:9000 \
-    --no-verify-ssl
-
-aws s3 cp terraform-provider-proxmox-cloud_0.0.1218143636_SHA256SUMS.sig s3://tdd-providers/providers/pxc/proxmox-cloud \
-    --endpoint-url http://localhost:9000 \
-    --no-verify-ssl
-
-
-GPG_FINGERPRINT=$(gpg --list-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')
-gpg --armor --export $GPG_FINGERPRINT | jq -Rs "{\"gpg_public_keys\": [{\"key_id\": \"$GPG_FINGERPRINT$\", \"ascii_armor\": .}]}" > signing-keys.json
-
-aws s3 cp signing-keys.json s3://tdd-providers/providers/pxc/ \
-    --endpoint-url http://localhost:9000 \
-    --no-verify-ssl
-
-
-
-The token can be passed to Terraform inside the ~/.terraformrc configuration file:
-
-credentials "localhost:5601" {
-  token = "very-secure-token"
-}
-
-
-
-provider_installation {
-  filesystem_mirror {
-    path    = "/home/cloud/.tdd-providers"
-    include = ["pxc/*"]
-  }
-  direct {
-    exclude = ["pxc/*"]	
-  }
-}
-
-
+protoc --go_out=./internal/provider --go_opt=paths=source_relative \
+    --go-grpc_out=./internal/provider --go-grpc_opt=paths=source_relative \
+    ./protos/cloud.proto
 ```

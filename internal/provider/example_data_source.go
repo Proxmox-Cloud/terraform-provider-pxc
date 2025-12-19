@@ -5,16 +5,16 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"net/http"
+	"fmt"	
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	// "golang.org/x/crypto/ssh"
-    // "golang.org/x/crypto/ssh/agent"
+	"time"
+
+	pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
+	"google.golang.org/grpc"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -26,13 +26,12 @@ func NewExampleDataSource() datasource.DataSource {
 
 // ExampleDataSource defines the data source implementation.
 type ExampleDataSource struct {
-	client *http.Client
+	providerModel ScaffoldingProviderModel
 }
 
 // ExampleDataSourceModel describes the data source data model.
 type ExampleDataSourceModel struct {
-	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
-	Id                    types.String `tfsdk:"id"`
+	Config                 types.String `tfsdk:"config"`
 }
 
 func (d *ExampleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -45,13 +44,9 @@ func (d *ExampleDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 		MarkdownDescription: "Example data source",
 
 		Attributes: map[string]schema.Attribute{
-			"configurable_attribute": schema.StringAttribute{
-				MarkdownDescription: "Example configurable attribute",
-				Optional:            true,
-			},
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Example identifier",
-				Computed:            true,
+			"config": schema.StringAttribute{
+				Computed: true,
+				MarkdownDescription: "Kubeconfig",
 			},
 		},
 	}
@@ -63,18 +58,17 @@ func (d *ExampleDataSource) Configure(ctx context.Context, req datasource.Config
 		return
 	}
 
-	client, ok := req.ProviderData.(*http.Client)
-
+	providerModel, ok := req.ProviderData.(ScaffoldingProviderModel)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *ScaffoldingProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	d.client = client
+	d.providerModel = providerModel
 }
 
 func (d *ExampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -86,22 +80,25 @@ func (d *ExampleDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
+    conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+    if err != nil {
+        resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		return
+    }
+    defer conn.Close()
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
+    client := pb.NewCloudServiceClient(conn)
 
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "read a data source")
+    cresp, err := client.GetMasterKubeconfig(ctx, &pb.GetKubeconfigRequest{TargetPve: d.providerModel.TargetPve.ValueString(), StackName: d.providerModel.K8sStackName.ValueString()})
+    if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		return
+    }
+
+	data.Config = types.StringValue(cresp.Config)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

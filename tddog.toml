@@ -1,0 +1,15 @@
+[build-tf]
+build_commands = [
+  [
+    "rm", "-rf",  "~/.tdd-providers"
+  ],
+  [
+    "mkdir", "-p", "~/.tdd-providers/registry.terraform.io/pxc/proxmox-cloud/$VERSION/linux_$ARCH/"
+  ],
+  [
+    "go", "build", "-o", "~/.tdd-providers/registry.terraform.io/pxc/proxmox-cloud/$VERSION/linux_$ARCH/terraform-provider-proxmox-cloud_v$VERSION"
+  ],
+]
+
+[redis]
+version_key = "version.tf-prov-proxmox-cloud"

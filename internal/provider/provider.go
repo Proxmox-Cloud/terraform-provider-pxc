@@ -5,7 +5,6 @@ package provider
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -65,14 +64,10 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// Configuration values are now available.
-	// if data.Endpoint.IsNull() { /* ... */ }
-
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	// simply pass the full model as data
+	resp.DataSourceData = data
+	resp.ResourceData = data
+	resp.EphemeralResourceData = data
 }
 
 func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.Resource {
@@ -83,7 +78,7 @@ func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.R
 
 func (p *ScaffoldingProvider) EphemeralResources(ctx context.Context) []func() ephemeral.EphemeralResource {
 	return []func() ephemeral.EphemeralResource{
-		NewExampleEphemeralResource,
+		NewKubeconfigEphemeralResource, 
 	}
 }
 

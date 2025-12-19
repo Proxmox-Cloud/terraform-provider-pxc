@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package cloud;
+
+option go_package = "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/proto;proto";
+
+service CloudService {
+  rpc GetMasterKubeconfig(GetKubeconfigRequest) returns (GetKubeconfigResponse);
+}
+
+message GetKubeconfigRequest {
+  string target_pve = 1;
+  string stack_name = 2;
+}
+
+message GetKubeconfigResponse {
+  string config = 1;
+}
