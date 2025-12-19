@@ -24,18 +24,52 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63loud.proto\x12\x05\x63loud\">\n\x14GetKubeconfigRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\x12\x12\n\nstack_name\x18\x02 \x01(\t\"\'\n\x15GetKubeconfigResponse\x12\x0e\n\x06\x63onfig\x18\x01 \x01(\t2`\n\x0c\x43loudService\x12P\n\x13GetMasterKubeconfig\x12\x1b.cloud.GetKubeconfigRequest\x1a\x1c.cloud.GetKubeconfigResponseBYZWgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/proto;protob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63loud.proto\x12\x06protos\",\n\x16GetPveInventoryRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\"B\n\x17GetPveInventoryResponse\x12\x11\n\tinventory\x18\x01 \x01(\t\x12\x14\n\x0c\x63loud_domain\x18\x02 \x01(\t\"+\n\x15GetProxmoxHostRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\"*\n\x16GetProxmoxHostResponse\x12\x10\n\x08pve_host\x18\x01 \x01(\t\"\xa9\x01\n\x14GetProxmoxApiRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\x12\x10\n\x08\x61pi_path\x18\x02 \x01(\t\x12;\n\x08get_args\x18\x03 \x03(\x0b\x32).protos.GetProxmoxApiRequest.GetArgsEntry\x1a.\n\x0cGetArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"*\n\x15GetProxmoxApiResponse\x12\x11\n\tjson_resp\x18\x01 \x01(\t\"\x87\x01\n\x10GetSshKeyRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\x12\x32\n\x08key_type\x18\x02 \x01(\x0e\x32 .protos.GetSshKeyRequest.KeyType\"+\n\x07KeyType\x12\x0e\n\nAUTOMATION\x10\x00\x12\x10\n\x0cPVE_HOST_RSA\x10\x01\" \n\x11GetSshKeyResponse\x12\x0b\n\x03key\x18\x01 \x01(\t\"*\n\x14GetCephAccessRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\"A\n\x15GetCephAccessResponse\x12\x11\n\tceph_conf\x18\x01 \x01(\t\x12\x15\n\radmin_keyring\x18\x02 \x01(\t\">\n\x14GetKubeconfigRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\x12\x12\n\nstack_name\x18\x02 \x01(\t\"\'\n\x15GetKubeconfigResponse\x12\x0e\n\x06\x63onfig\x18\x01 \x01(\t\"+\n\x15GetClusterVarsRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\"&\n\x16GetClusterVarsResponse\x12\x0c\n\x04vars\x18\x01 \x01(\t\"@\n\x15GetCloudSecretRequest\x12\x12\n\ntarget_pve\x18\x01 \x01(\t\x12\x13\n\x0bsecret_name\x18\x02 \x01(\t\"(\n\x16GetCloudSecretResponse\x12\x0e\n\x06secret\x18\x01 \x01(\t2\x87\x05\n\x0c\x43loudService\x12R\n\x13GetMasterKubeconfig\x12\x1c.protos.GetKubeconfigRequest\x1a\x1d.protos.GetKubeconfigResponse\x12O\n\x0eGetClusterVars\x12\x1d.protos.GetClusterVarsRequest\x1a\x1e.protos.GetClusterVarsResponse\x12O\n\x0eGetCloudSecret\x12\x1d.protos.GetCloudSecretRequest\x1a\x1e.protos.GetCloudSecretResponse\x12L\n\rGetCephAccess\x12\x1c.protos.GetCephAccessRequest\x1a\x1d.protos.GetCephAccessResponse\x12@\n\tGetSshKey\x12\x18.protos.GetSshKeyRequest\x1a\x19.protos.GetSshKeyResponse\x12L\n\rGetProxmoxApi\x12\x1c.protos.GetProxmoxApiRequest\x1a\x1d.protos.GetProxmoxApiResponse\x12O\n\x0eGetProxmoxHost\x12\x1d.protos.GetProxmoxHostRequest\x1a\x1e.protos.GetProxmoxHostResponse\x12R\n\x0fGetPveInventory\x12\x1e.protos.GetPveInventoryRequest\x1a\x1f.protos.GetPveInventoryResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protosb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cloud_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'ZWgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/proto;proto'
-  _globals['_GETKUBECONFIGREQUEST']._serialized_start=22
-  _globals['_GETKUBECONFIGREQUEST']._serialized_end=84
-  _globals['_GETKUBECONFIGRESPONSE']._serialized_start=86
-  _globals['_GETKUBECONFIGRESPONSE']._serialized_end=125
-  _globals['_CLOUDSERVICE']._serialized_start=127
-  _globals['_CLOUDSERVICE']._serialized_end=223
+  _globals['DESCRIPTOR']._serialized_options = b'ZYgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protos'
+  _globals['_GETPROXMOXAPIREQUEST_GETARGSENTRY']._loaded_options = None
+  _globals['_GETPROXMOXAPIREQUEST_GETARGSENTRY']._serialized_options = b'8\001'
+  _globals['_GETPVEINVENTORYREQUEST']._serialized_start=23
+  _globals['_GETPVEINVENTORYREQUEST']._serialized_end=67
+  _globals['_GETPVEINVENTORYRESPONSE']._serialized_start=69
+  _globals['_GETPVEINVENTORYRESPONSE']._serialized_end=135
+  _globals['_GETPROXMOXHOSTREQUEST']._serialized_start=137
+  _globals['_GETPROXMOXHOSTREQUEST']._serialized_end=180
+  _globals['_GETPROXMOXHOSTRESPONSE']._serialized_start=182
+  _globals['_GETPROXMOXHOSTRESPONSE']._serialized_end=224
+  _globals['_GETPROXMOXAPIREQUEST']._serialized_start=227
+  _globals['_GETPROXMOXAPIREQUEST']._serialized_end=396
+  _globals['_GETPROXMOXAPIREQUEST_GETARGSENTRY']._serialized_start=350
+  _globals['_GETPROXMOXAPIREQUEST_GETARGSENTRY']._serialized_end=396
+  _globals['_GETPROXMOXAPIRESPONSE']._serialized_start=398
+  _globals['_GETPROXMOXAPIRESPONSE']._serialized_end=440
+  _globals['_GETSSHKEYREQUEST']._serialized_start=443
+  _globals['_GETSSHKEYREQUEST']._serialized_end=578
+  _globals['_GETSSHKEYREQUEST_KEYTYPE']._serialized_start=535
+  _globals['_GETSSHKEYREQUEST_KEYTYPE']._serialized_end=578
+  _globals['_GETSSHKEYRESPONSE']._serialized_start=580
+  _globals['_GETSSHKEYRESPONSE']._serialized_end=612
+  _globals['_GETCEPHACCESSREQUEST']._serialized_start=614
+  _globals['_GETCEPHACCESSREQUEST']._serialized_end=656
+  _globals['_GETCEPHACCESSRESPONSE']._serialized_start=658
+  _globals['_GETCEPHACCESSRESPONSE']._serialized_end=723
+  _globals['_GETKUBECONFIGREQUEST']._serialized_start=725
+  _globals['_GETKUBECONFIGREQUEST']._serialized_end=787
+  _globals['_GETKUBECONFIGRESPONSE']._serialized_start=789
+  _globals['_GETKUBECONFIGRESPONSE']._serialized_end=828
+  _globals['_GETCLUSTERVARSREQUEST']._serialized_start=830
+  _globals['_GETCLUSTERVARSREQUEST']._serialized_end=873
+  _globals['_GETCLUSTERVARSRESPONSE']._serialized_start=875
+  _globals['_GETCLUSTERVARSRESPONSE']._serialized_end=913
+  _globals['_GETCLOUDSECRETREQUEST']._serialized_start=915
+  _globals['_GETCLOUDSECRETREQUEST']._serialized_end=979
+  _globals['_GETCLOUDSECRETRESPONSE']._serialized_start=981
+  _globals['_GETCLOUDSECRETRESPONSE']._serialized_end=1021
+  _globals['_CLOUDSERVICE']._serialized_start=1024
+  _globals['_CLOUDSERVICE']._serialized_end=1671
 # @@protoc_insertion_point(module_scope)

@@ -71,16 +71,23 @@ make testacc
 
 
 pip install grpcio-tools-1.76.0
-python -m grpc_tools.protoc -I./protos --python_out=./src/pve_cloud_rpc/protos --grpc_python_out=./src/pve_cloud_rpc/protos ./protos/cloud.proto
-=> add pve_cloud_rpc.protos to cloud_pb2_grpc.py import
 
 
 install protocompiler 3 (apt)
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-export PATH="$PATH:$(go env GOPATH)/bin"
 
+
+python -m grpc_tools.protoc -I./protos --python_out=./src/pve_cloud_rpc/protos --grpc_python_out=./src/pve_cloud_rpc/protos ./protos/*.proto
+sed -i 's|import cloud_pb2|import pve_cloud_rpc.protos.cloud_pb2|g' src/pve_cloud_rpc/protos/cloud_pb2_grpc.py
+sed -i 's|import health_pb2|import pve_cloud_rpc.protos.health_pb2|g' src/pve_cloud_rpc/protos/health_pb2_grpc.py
+
+export PATH="$PATH:$(go env GOPATH)/bin"
 protoc --go_out=./internal/provider --go_opt=paths=source_relative \
     --go-grpc_out=./internal/provider --go-grpc_opt=paths=source_relative \
-    ./protos/cloud.proto
+    ./protos/*.proto
+
+
+
+
 ```

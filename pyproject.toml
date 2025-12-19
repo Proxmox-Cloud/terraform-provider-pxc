@@ -9,7 +9,8 @@ license = "GPL-3.0-or-later"
 license-files = ["LICENSE.md"]
 version = "0.0.1"
 dependencies = [
-  "grpcio==1.76.0"
+  "grpcio==1.76.0",
+  "asyncssh==2.21.0"
 ]
 
 [project.scripts]

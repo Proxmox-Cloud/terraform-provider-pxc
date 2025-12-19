@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: protos/cloud.proto
 
-package proto
+package protos
 
 import (
 	context "context"
@@ -19,7 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CloudService_GetMasterKubeconfig_FullMethodName = "/cloud.CloudService/GetMasterKubeconfig"
+	CloudService_GetMasterKubeconfig_FullMethodName = "/protos.CloudService/GetMasterKubeconfig"
+	CloudService_GetClusterVars_FullMethodName      = "/protos.CloudService/GetClusterVars"
+	CloudService_GetCloudSecret_FullMethodName      = "/protos.CloudService/GetCloudSecret"
+	CloudService_GetCephAccess_FullMethodName       = "/protos.CloudService/GetCephAccess"
+	CloudService_GetSshKey_FullMethodName           = "/protos.CloudService/GetSshKey"
+	CloudService_GetProxmoxApi_FullMethodName       = "/protos.CloudService/GetProxmoxApi"
+	CloudService_GetProxmoxHost_FullMethodName      = "/protos.CloudService/GetProxmoxHost"
+	CloudService_GetPveInventory_FullMethodName     = "/protos.CloudService/GetPveInventory"
 )
 
 // CloudServiceClient is the client API for CloudService service.
@@ -27,6 +34,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CloudServiceClient interface {
 	GetMasterKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*GetKubeconfigResponse, error)
+	GetClusterVars(ctx context.Context, in *GetClusterVarsRequest, opts ...grpc.CallOption) (*GetClusterVarsResponse, error)
+	GetCloudSecret(ctx context.Context, in *GetCloudSecretRequest, opts ...grpc.CallOption) (*GetCloudSecretResponse, error)
+	GetCephAccess(ctx context.Context, in *GetCephAccessRequest, opts ...grpc.CallOption) (*GetCephAccessResponse, error)
+	GetSshKey(ctx context.Context, in *GetSshKeyRequest, opts ...grpc.CallOption) (*GetSshKeyResponse, error)
+	GetProxmoxApi(ctx context.Context, in *GetProxmoxApiRequest, opts ...grpc.CallOption) (*GetProxmoxApiResponse, error)
+	GetProxmoxHost(ctx context.Context, in *GetProxmoxHostRequest, opts ...grpc.CallOption) (*GetProxmoxHostResponse, error)
+	GetPveInventory(ctx context.Context, in *GetPveInventoryRequest, opts ...grpc.CallOption) (*GetPveInventoryResponse, error)
 }
 
 type cloudServiceClient struct {
@@ -47,11 +61,88 @@ func (c *cloudServiceClient) GetMasterKubeconfig(ctx context.Context, in *GetKub
 	return out, nil
 }
 
+func (c *cloudServiceClient) GetClusterVars(ctx context.Context, in *GetClusterVarsRequest, opts ...grpc.CallOption) (*GetClusterVarsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetClusterVarsResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetClusterVars_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) GetCloudSecret(ctx context.Context, in *GetCloudSecretRequest, opts ...grpc.CallOption) (*GetCloudSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCloudSecretResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetCloudSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) GetCephAccess(ctx context.Context, in *GetCephAccessRequest, opts ...grpc.CallOption) (*GetCephAccessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCephAccessResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetCephAccess_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) GetSshKey(ctx context.Context, in *GetSshKeyRequest, opts ...grpc.CallOption) (*GetSshKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSshKeyResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetSshKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) GetProxmoxApi(ctx context.Context, in *GetProxmoxApiRequest, opts ...grpc.CallOption) (*GetProxmoxApiResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProxmoxApiResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetProxmoxApi_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) GetProxmoxHost(ctx context.Context, in *GetProxmoxHostRequest, opts ...grpc.CallOption) (*GetProxmoxHostResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProxmoxHostResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetProxmoxHost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) GetPveInventory(ctx context.Context, in *GetPveInventoryRequest, opts ...grpc.CallOption) (*GetPveInventoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPveInventoryResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetPveInventory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudServiceServer is the server API for CloudService service.
 // All implementations must embed UnimplementedCloudServiceServer
 // for forward compatibility.
 type CloudServiceServer interface {
 	GetMasterKubeconfig(context.Context, *GetKubeconfigRequest) (*GetKubeconfigResponse, error)
+	GetClusterVars(context.Context, *GetClusterVarsRequest) (*GetClusterVarsResponse, error)
+	GetCloudSecret(context.Context, *GetCloudSecretRequest) (*GetCloudSecretResponse, error)
+	GetCephAccess(context.Context, *GetCephAccessRequest) (*GetCephAccessResponse, error)
+	GetSshKey(context.Context, *GetSshKeyRequest) (*GetSshKeyResponse, error)
+	GetProxmoxApi(context.Context, *GetProxmoxApiRequest) (*GetProxmoxApiResponse, error)
+	GetProxmoxHost(context.Context, *GetProxmoxHostRequest) (*GetProxmoxHostResponse, error)
+	GetPveInventory(context.Context, *GetPveInventoryRequest) (*GetPveInventoryResponse, error)
 	mustEmbedUnimplementedCloudServiceServer()
 }
 
@@ -64,6 +155,27 @@ type UnimplementedCloudServiceServer struct{}
 
 func (UnimplementedCloudServiceServer) GetMasterKubeconfig(context.Context, *GetKubeconfigRequest) (*GetKubeconfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMasterKubeconfig not implemented")
+}
+func (UnimplementedCloudServiceServer) GetClusterVars(context.Context, *GetClusterVarsRequest) (*GetClusterVarsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClusterVars not implemented")
+}
+func (UnimplementedCloudServiceServer) GetCloudSecret(context.Context, *GetCloudSecretRequest) (*GetCloudSecretResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCloudSecret not implemented")
+}
+func (UnimplementedCloudServiceServer) GetCephAccess(context.Context, *GetCephAccessRequest) (*GetCephAccessResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCephAccess not implemented")
+}
+func (UnimplementedCloudServiceServer) GetSshKey(context.Context, *GetSshKeyRequest) (*GetSshKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSshKey not implemented")
+}
+func (UnimplementedCloudServiceServer) GetProxmoxApi(context.Context, *GetProxmoxApiRequest) (*GetProxmoxApiResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProxmoxApi not implemented")
+}
+func (UnimplementedCloudServiceServer) GetProxmoxHost(context.Context, *GetProxmoxHostRequest) (*GetProxmoxHostResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProxmoxHost not implemented")
+}
+func (UnimplementedCloudServiceServer) GetPveInventory(context.Context, *GetPveInventoryRequest) (*GetPveInventoryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPveInventory not implemented")
 }
 func (UnimplementedCloudServiceServer) mustEmbedUnimplementedCloudServiceServer() {}
 func (UnimplementedCloudServiceServer) testEmbeddedByValue()                      {}
@@ -104,16 +216,170 @@ func _CloudService_GetMasterKubeconfig_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudService_GetClusterVars_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClusterVarsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetClusterVars(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetClusterVars_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetClusterVars(ctx, req.(*GetClusterVarsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_GetCloudSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCloudSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetCloudSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetCloudSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetCloudSecret(ctx, req.(*GetCloudSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_GetCephAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCephAccessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetCephAccess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetCephAccess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetCephAccess(ctx, req.(*GetCephAccessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_GetSshKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSshKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetSshKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetSshKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetSshKey(ctx, req.(*GetSshKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_GetProxmoxApi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProxmoxApiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetProxmoxApi(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetProxmoxApi_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetProxmoxApi(ctx, req.(*GetProxmoxApiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_GetProxmoxHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProxmoxHostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetProxmoxHost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetProxmoxHost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetProxmoxHost(ctx, req.(*GetProxmoxHostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_GetPveInventory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPveInventoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetPveInventory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetPveInventory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetPveInventory(ctx, req.(*GetPveInventoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudService_ServiceDesc is the grpc.ServiceDesc for CloudService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CloudService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "cloud.CloudService",
+	ServiceName: "protos.CloudService",
 	HandlerType: (*CloudServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetMasterKubeconfig",
 			Handler:    _CloudService_GetMasterKubeconfig_Handler,
+		},
+		{
+			MethodName: "GetClusterVars",
+			Handler:    _CloudService_GetClusterVars_Handler,
+		},
+		{
+			MethodName: "GetCloudSecret",
+			Handler:    _CloudService_GetCloudSecret_Handler,
+		},
+		{
+			MethodName: "GetCephAccess",
+			Handler:    _CloudService_GetCephAccess_Handler,
+		},
+		{
+			MethodName: "GetSshKey",
+			Handler:    _CloudService_GetSshKey_Handler,
+		},
+		{
+			MethodName: "GetProxmoxApi",
+			Handler:    _CloudService_GetProxmoxApi_Handler,
+		},
+		{
+			MethodName: "GetProxmoxHost",
+			Handler:    _CloudService_GetProxmoxHost_Handler,
+		},
+		{
+			MethodName: "GetPveInventory",
+			Handler:    _CloudService_GetPveInventory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

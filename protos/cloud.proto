@@ -1,11 +1,67 @@
 syntax = "proto3";
 
-package cloud;
+package protos;
 
-option go_package = "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/proto;proto";
+option go_package = "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protos";
 
 service CloudService {
   rpc GetMasterKubeconfig(GetKubeconfigRequest) returns (GetKubeconfigResponse);
+  rpc GetClusterVars(GetClusterVarsRequest) returns (GetClusterVarsResponse);
+  rpc GetCloudSecret(GetCloudSecretRequest) returns (GetCloudSecretResponse);
+  rpc GetCephAccess(GetCephAccessRequest) returns (GetCephAccessResponse);
+  rpc GetSshKey(GetSshKeyRequest) returns (GetSshKeyResponse);
+  rpc GetProxmoxApi(GetProxmoxApiRequest) returns (GetProxmoxApiResponse);
+  rpc GetProxmoxHost(GetProxmoxHostRequest) returns (GetProxmoxHostResponse);
+  rpc GetPveInventory(GetPveInventoryRequest) returns (GetPveInventoryResponse);
+}
+
+message GetPveInventoryRequest {
+  string target_pve = 1;
+}
+
+message GetPveInventoryResponse {
+  string inventory = 1;
+  string cloud_domain = 2;
+}
+
+message GetProxmoxHostRequest {
+  string target_pve = 1;
+}
+
+message GetProxmoxHostResponse {
+  string pve_host = 1;
+}
+
+message GetProxmoxApiRequest {
+  string target_pve = 1;
+  string api_path = 2;
+  map<string, string> get_args = 3;
+}
+
+message GetProxmoxApiResponse {
+  string json_resp = 1;
+}
+
+message GetSshKeyRequest {
+  string target_pve = 1;
+  enum KeyType {
+    AUTOMATION = 0;
+    PVE_HOST_RSA = 1;
+  }
+  KeyType key_type = 2;
+}
+
+message GetSshKeyResponse {
+  string key = 1;
+}
+
+message GetCephAccessRequest {
+  string target_pve = 1;
+}
+
+message GetCephAccessResponse {
+  string ceph_conf = 1;
+  string admin_keyring = 2;
 }
 
 message GetKubeconfigRequest {
@@ -16,3 +72,21 @@ message GetKubeconfigRequest {
 message GetKubeconfigResponse {
   string config = 1;
 }
+
+message GetClusterVarsRequest {
+  string target_pve = 1;
+}
+
+message GetClusterVarsResponse {
+  string vars = 1;
+}
+
+message GetCloudSecretRequest {
+  string target_pve = 1;
+  string secret_name = 2;
+}
+
+message GetCloudSecretResponse {
+  string secret = 1;
+}
+

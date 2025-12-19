@@ -35,9 +35,44 @@ class CloudServiceStub(object):
             channel: A grpc.Channel.
         """
         self.GetMasterKubeconfig = channel.unary_unary(
-                '/cloud.CloudService/GetMasterKubeconfig',
+                '/protos.CloudService/GetMasterKubeconfig',
                 request_serializer=cloud__pb2.GetKubeconfigRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetKubeconfigResponse.FromString,
+                _registered_method=True)
+        self.GetClusterVars = channel.unary_unary(
+                '/protos.CloudService/GetClusterVars',
+                request_serializer=cloud__pb2.GetClusterVarsRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetClusterVarsResponse.FromString,
+                _registered_method=True)
+        self.GetCloudSecret = channel.unary_unary(
+                '/protos.CloudService/GetCloudSecret',
+                request_serializer=cloud__pb2.GetCloudSecretRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetCloudSecretResponse.FromString,
+                _registered_method=True)
+        self.GetCephAccess = channel.unary_unary(
+                '/protos.CloudService/GetCephAccess',
+                request_serializer=cloud__pb2.GetCephAccessRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetCephAccessResponse.FromString,
+                _registered_method=True)
+        self.GetSshKey = channel.unary_unary(
+                '/protos.CloudService/GetSshKey',
+                request_serializer=cloud__pb2.GetSshKeyRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetSshKeyResponse.FromString,
+                _registered_method=True)
+        self.GetProxmoxApi = channel.unary_unary(
+                '/protos.CloudService/GetProxmoxApi',
+                request_serializer=cloud__pb2.GetProxmoxApiRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetProxmoxApiResponse.FromString,
+                _registered_method=True)
+        self.GetProxmoxHost = channel.unary_unary(
+                '/protos.CloudService/GetProxmoxHost',
+                request_serializer=cloud__pb2.GetProxmoxHostRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetProxmoxHostResponse.FromString,
+                _registered_method=True)
+        self.GetPveInventory = channel.unary_unary(
+                '/protos.CloudService/GetPveInventory',
+                request_serializer=cloud__pb2.GetPveInventoryRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetPveInventoryResponse.FromString,
                 _registered_method=True)
 
 
@@ -45,6 +80,48 @@ class CloudServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def GetMasterKubeconfig(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetClusterVars(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCloudSecret(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCephAccess(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetSshKey(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetProxmoxApi(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetProxmoxHost(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetPveInventory(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -58,11 +135,46 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     request_deserializer=cloud__pb2.GetKubeconfigRequest.FromString,
                     response_serializer=cloud__pb2.GetKubeconfigResponse.SerializeToString,
             ),
+            'GetClusterVars': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetClusterVars,
+                    request_deserializer=cloud__pb2.GetClusterVarsRequest.FromString,
+                    response_serializer=cloud__pb2.GetClusterVarsResponse.SerializeToString,
+            ),
+            'GetCloudSecret': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCloudSecret,
+                    request_deserializer=cloud__pb2.GetCloudSecretRequest.FromString,
+                    response_serializer=cloud__pb2.GetCloudSecretResponse.SerializeToString,
+            ),
+            'GetCephAccess': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCephAccess,
+                    request_deserializer=cloud__pb2.GetCephAccessRequest.FromString,
+                    response_serializer=cloud__pb2.GetCephAccessResponse.SerializeToString,
+            ),
+            'GetSshKey': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSshKey,
+                    request_deserializer=cloud__pb2.GetSshKeyRequest.FromString,
+                    response_serializer=cloud__pb2.GetSshKeyResponse.SerializeToString,
+            ),
+            'GetProxmoxApi': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetProxmoxApi,
+                    request_deserializer=cloud__pb2.GetProxmoxApiRequest.FromString,
+                    response_serializer=cloud__pb2.GetProxmoxApiResponse.SerializeToString,
+            ),
+            'GetProxmoxHost': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetProxmoxHost,
+                    request_deserializer=cloud__pb2.GetProxmoxHostRequest.FromString,
+                    response_serializer=cloud__pb2.GetProxmoxHostResponse.SerializeToString,
+            ),
+            'GetPveInventory': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPveInventory,
+                    request_deserializer=cloud__pb2.GetPveInventoryRequest.FromString,
+                    response_serializer=cloud__pb2.GetPveInventoryResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'cloud.CloudService', rpc_method_handlers)
+            'protos.CloudService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('cloud.CloudService', rpc_method_handlers)
+    server.add_registered_method_handlers('protos.CloudService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -83,9 +195,198 @@ class CloudService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/cloud.CloudService/GetMasterKubeconfig',
+            '/protos.CloudService/GetMasterKubeconfig',
             cloud__pb2.GetKubeconfigRequest.SerializeToString,
             cloud__pb2.GetKubeconfigResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetClusterVars(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetClusterVars',
+            cloud__pb2.GetClusterVarsRequest.SerializeToString,
+            cloud__pb2.GetClusterVarsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCloudSecret(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetCloudSecret',
+            cloud__pb2.GetCloudSecretRequest.SerializeToString,
+            cloud__pb2.GetCloudSecretResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCephAccess(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetCephAccess',
+            cloud__pb2.GetCephAccessRequest.SerializeToString,
+            cloud__pb2.GetCephAccessResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetSshKey(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetSshKey',
+            cloud__pb2.GetSshKeyRequest.SerializeToString,
+            cloud__pb2.GetSshKeyResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetProxmoxApi(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetProxmoxApi',
+            cloud__pb2.GetProxmoxApiRequest.SerializeToString,
+            cloud__pb2.GetProxmoxApiResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetProxmoxHost(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetProxmoxHost',
+            cloud__pb2.GetProxmoxHostRequest.SerializeToString,
+            cloud__pb2.GetProxmoxHostResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPveInventory(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetPveInventory',
+            cloud__pb2.GetPveInventoryRequest.SerializeToString,
+            cloud__pb2.GetPveInventoryResponse.FromString,
             options,
             channel_credentials,
             insecure,

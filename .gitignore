@@ -40,5 +40,5 @@ website/vendor
 
 
 __pycache__
-
 META.d/
+*.egg-info

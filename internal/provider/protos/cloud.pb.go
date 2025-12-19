@@ -4,7 +4,7 @@
 // 	protoc        v3.21.12
 // source: protos/cloud.proto
 
-package proto
+package protos
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -21,6 +21,532 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type GetSshKeyRequest_KeyType int32
+
+const (
+	GetSshKeyRequest_AUTOMATION   GetSshKeyRequest_KeyType = 0
+	GetSshKeyRequest_PVE_HOST_RSA GetSshKeyRequest_KeyType = 1
+)
+
+// Enum value maps for GetSshKeyRequest_KeyType.
+var (
+	GetSshKeyRequest_KeyType_name = map[int32]string{
+		0: "AUTOMATION",
+		1: "PVE_HOST_RSA",
+	}
+	GetSshKeyRequest_KeyType_value = map[string]int32{
+		"AUTOMATION":   0,
+		"PVE_HOST_RSA": 1,
+	}
+)
+
+func (x GetSshKeyRequest_KeyType) Enum() *GetSshKeyRequest_KeyType {
+	p := new(GetSshKeyRequest_KeyType)
+	*p = x
+	return p
+}
+
+func (x GetSshKeyRequest_KeyType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GetSshKeyRequest_KeyType) Descriptor() protoreflect.EnumDescriptor {
+	return file_protos_cloud_proto_enumTypes[0].Descriptor()
+}
+
+func (GetSshKeyRequest_KeyType) Type() protoreflect.EnumType {
+	return &file_protos_cloud_proto_enumTypes[0]
+}
+
+func (x GetSshKeyRequest_KeyType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GetSshKeyRequest_KeyType.Descriptor instead.
+func (GetSshKeyRequest_KeyType) EnumDescriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{6, 0}
+}
+
+type GetPveInventoryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPveInventoryRequest) Reset() {
+	*x = GetPveInventoryRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPveInventoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPveInventoryRequest) ProtoMessage() {}
+
+func (x *GetPveInventoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPveInventoryRequest.ProtoReflect.Descriptor instead.
+func (*GetPveInventoryRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetPveInventoryRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+type GetPveInventoryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Inventory     string                 `protobuf:"bytes,1,opt,name=inventory,proto3" json:"inventory,omitempty"`
+	CloudDomain   string                 `protobuf:"bytes,2,opt,name=cloud_domain,json=cloudDomain,proto3" json:"cloud_domain,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPveInventoryResponse) Reset() {
+	*x = GetPveInventoryResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPveInventoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPveInventoryResponse) ProtoMessage() {}
+
+func (x *GetPveInventoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPveInventoryResponse.ProtoReflect.Descriptor instead.
+func (*GetPveInventoryResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetPveInventoryResponse) GetInventory() string {
+	if x != nil {
+		return x.Inventory
+	}
+	return ""
+}
+
+func (x *GetPveInventoryResponse) GetCloudDomain() string {
+	if x != nil {
+		return x.CloudDomain
+	}
+	return ""
+}
+
+type GetProxmoxHostRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProxmoxHostRequest) Reset() {
+	*x = GetProxmoxHostRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProxmoxHostRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxmoxHostRequest) ProtoMessage() {}
+
+func (x *GetProxmoxHostRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxmoxHostRequest.ProtoReflect.Descriptor instead.
+func (*GetProxmoxHostRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetProxmoxHostRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+type GetProxmoxHostResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PveHost       string                 `protobuf:"bytes,1,opt,name=pve_host,json=pveHost,proto3" json:"pve_host,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProxmoxHostResponse) Reset() {
+	*x = GetProxmoxHostResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProxmoxHostResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxmoxHostResponse) ProtoMessage() {}
+
+func (x *GetProxmoxHostResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxmoxHostResponse.ProtoReflect.Descriptor instead.
+func (*GetProxmoxHostResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetProxmoxHostResponse) GetPveHost() string {
+	if x != nil {
+		return x.PveHost
+	}
+	return ""
+}
+
+type GetProxmoxApiRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	ApiPath       string                 `protobuf:"bytes,2,opt,name=api_path,json=apiPath,proto3" json:"api_path,omitempty"`
+	GetArgs       map[string]string      `protobuf:"bytes,3,rep,name=get_args,json=getArgs,proto3" json:"get_args,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProxmoxApiRequest) Reset() {
+	*x = GetProxmoxApiRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProxmoxApiRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxmoxApiRequest) ProtoMessage() {}
+
+func (x *GetProxmoxApiRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxmoxApiRequest.ProtoReflect.Descriptor instead.
+func (*GetProxmoxApiRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetProxmoxApiRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+func (x *GetProxmoxApiRequest) GetApiPath() string {
+	if x != nil {
+		return x.ApiPath
+	}
+	return ""
+}
+
+func (x *GetProxmoxApiRequest) GetGetArgs() map[string]string {
+	if x != nil {
+		return x.GetArgs
+	}
+	return nil
+}
+
+type GetProxmoxApiResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JsonResp      string                 `protobuf:"bytes,1,opt,name=json_resp,json=jsonResp,proto3" json:"json_resp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProxmoxApiResponse) Reset() {
+	*x = GetProxmoxApiResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProxmoxApiResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxmoxApiResponse) ProtoMessage() {}
+
+func (x *GetProxmoxApiResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxmoxApiResponse.ProtoReflect.Descriptor instead.
+func (*GetProxmoxApiResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetProxmoxApiResponse) GetJsonResp() string {
+	if x != nil {
+		return x.JsonResp
+	}
+	return ""
+}
+
+type GetSshKeyRequest struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	TargetPve     string                   `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	KeyType       GetSshKeyRequest_KeyType `protobuf:"varint,2,opt,name=key_type,json=keyType,proto3,enum=protos.GetSshKeyRequest_KeyType" json:"key_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSshKeyRequest) Reset() {
+	*x = GetSshKeyRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSshKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSshKeyRequest) ProtoMessage() {}
+
+func (x *GetSshKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSshKeyRequest.ProtoReflect.Descriptor instead.
+func (*GetSshKeyRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetSshKeyRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+func (x *GetSshKeyRequest) GetKeyType() GetSshKeyRequest_KeyType {
+	if x != nil {
+		return x.KeyType
+	}
+	return GetSshKeyRequest_AUTOMATION
+}
+
+type GetSshKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSshKeyResponse) Reset() {
+	*x = GetSshKeyResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSshKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSshKeyResponse) ProtoMessage() {}
+
+func (x *GetSshKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSshKeyResponse.ProtoReflect.Descriptor instead.
+func (*GetSshKeyResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetSshKeyResponse) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+type GetCephAccessRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCephAccessRequest) Reset() {
+	*x = GetCephAccessRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCephAccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCephAccessRequest) ProtoMessage() {}
+
+func (x *GetCephAccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCephAccessRequest.ProtoReflect.Descriptor instead.
+func (*GetCephAccessRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetCephAccessRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+type GetCephAccessResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CephConf      string                 `protobuf:"bytes,1,opt,name=ceph_conf,json=cephConf,proto3" json:"ceph_conf,omitempty"`
+	AdminKeyring  string                 `protobuf:"bytes,2,opt,name=admin_keyring,json=adminKeyring,proto3" json:"admin_keyring,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCephAccessResponse) Reset() {
+	*x = GetCephAccessResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCephAccessResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCephAccessResponse) ProtoMessage() {}
+
+func (x *GetCephAccessResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCephAccessResponse.ProtoReflect.Descriptor instead.
+func (*GetCephAccessResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetCephAccessResponse) GetCephConf() string {
+	if x != nil {
+		return x.CephConf
+	}
+	return ""
+}
+
+func (x *GetCephAccessResponse) GetAdminKeyring() string {
+	if x != nil {
+		return x.AdminKeyring
+	}
+	return ""
+}
+
 type GetKubeconfigRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
@@ -31,7 +557,7 @@ type GetKubeconfigRequest struct {
 
 func (x *GetKubeconfigRequest) Reset() {
 	*x = GetKubeconfigRequest{}
-	mi := &file_protos_cloud_proto_msgTypes[0]
+	mi := &file_protos_cloud_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +569,7 @@ func (x *GetKubeconfigRequest) String() string {
 func (*GetKubeconfigRequest) ProtoMessage() {}
 
 func (x *GetKubeconfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_cloud_proto_msgTypes[0]
+	mi := &file_protos_cloud_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +582,7 @@ func (x *GetKubeconfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubeconfigRequest.ProtoReflect.Descriptor instead.
 func (*GetKubeconfigRequest) Descriptor() ([]byte, []int) {
-	return file_protos_cloud_proto_rawDescGZIP(), []int{0}
+	return file_protos_cloud_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetKubeconfigRequest) GetTargetPve() string {
@@ -82,7 +608,7 @@ type GetKubeconfigResponse struct {
 
 func (x *GetKubeconfigResponse) Reset() {
 	*x = GetKubeconfigResponse{}
-	mi := &file_protos_cloud_proto_msgTypes[1]
+	mi := &file_protos_cloud_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +620,7 @@ func (x *GetKubeconfigResponse) String() string {
 func (*GetKubeconfigResponse) ProtoMessage() {}
 
 func (x *GetKubeconfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_cloud_proto_msgTypes[1]
+	mi := &file_protos_cloud_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +633,7 @@ func (x *GetKubeconfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubeconfigResponse.ProtoReflect.Descriptor instead.
 func (*GetKubeconfigResponse) Descriptor() ([]byte, []int) {
-	return file_protos_cloud_proto_rawDescGZIP(), []int{1}
+	return file_protos_cloud_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetKubeconfigResponse) GetConfig() string {
@@ -117,20 +643,260 @@ func (x *GetKubeconfigResponse) GetConfig() string {
 	return ""
 }
 
+type GetClusterVarsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClusterVarsRequest) Reset() {
+	*x = GetClusterVarsRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterVarsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterVarsRequest) ProtoMessage() {}
+
+func (x *GetClusterVarsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClusterVarsRequest.ProtoReflect.Descriptor instead.
+func (*GetClusterVarsRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetClusterVarsRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+type GetClusterVarsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Vars          string                 `protobuf:"bytes,1,opt,name=vars,proto3" json:"vars,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClusterVarsResponse) Reset() {
+	*x = GetClusterVarsResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterVarsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterVarsResponse) ProtoMessage() {}
+
+func (x *GetClusterVarsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClusterVarsResponse.ProtoReflect.Descriptor instead.
+func (*GetClusterVarsResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetClusterVarsResponse) GetVars() string {
+	if x != nil {
+		return x.Vars
+	}
+	return ""
+}
+
+type GetCloudSecretRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	SecretName    string                 `protobuf:"bytes,2,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCloudSecretRequest) Reset() {
+	*x = GetCloudSecretRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCloudSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCloudSecretRequest) ProtoMessage() {}
+
+func (x *GetCloudSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCloudSecretRequest.ProtoReflect.Descriptor instead.
+func (*GetCloudSecretRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetCloudSecretRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+func (x *GetCloudSecretRequest) GetSecretName() string {
+	if x != nil {
+		return x.SecretName
+	}
+	return ""
+}
+
+type GetCloudSecretResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Secret        string                 `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCloudSecretResponse) Reset() {
+	*x = GetCloudSecretResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCloudSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCloudSecretResponse) ProtoMessage() {}
+
+func (x *GetCloudSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCloudSecretResponse.ProtoReflect.Descriptor instead.
+func (*GetCloudSecretResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetCloudSecretResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
 var File_protos_cloud_proto protoreflect.FileDescriptor
 
 const file_protos_cloud_proto_rawDesc = "" +
 	"\n" +
-	"\x12protos/cloud.proto\x12\x05cloud\"T\n" +
+	"\x12protos/cloud.proto\x12\x06protos\"7\n" +
+	"\x16GetPveInventoryRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\"Z\n" +
+	"\x17GetPveInventoryResponse\x12\x1c\n" +
+	"\tinventory\x18\x01 \x01(\tR\tinventory\x12!\n" +
+	"\fcloud_domain\x18\x02 \x01(\tR\vcloudDomain\"6\n" +
+	"\x15GetProxmoxHostRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\"3\n" +
+	"\x16GetProxmoxHostResponse\x12\x19\n" +
+	"\bpve_host\x18\x01 \x01(\tR\apveHost\"\xd2\x01\n" +
+	"\x14GetProxmoxApiRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x19\n" +
+	"\bapi_path\x18\x02 \x01(\tR\aapiPath\x12D\n" +
+	"\bget_args\x18\x03 \x03(\v2).protos.GetProxmoxApiRequest.GetArgsEntryR\agetArgs\x1a:\n" +
+	"\fGetArgsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"4\n" +
+	"\x15GetProxmoxApiResponse\x12\x1b\n" +
+	"\tjson_resp\x18\x01 \x01(\tR\bjsonResp\"\x9b\x01\n" +
+	"\x10GetSshKeyRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12;\n" +
+	"\bkey_type\x18\x02 \x01(\x0e2 .protos.GetSshKeyRequest.KeyTypeR\akeyType\"+\n" +
+	"\aKeyType\x12\x0e\n" +
+	"\n" +
+	"AUTOMATION\x10\x00\x12\x10\n" +
+	"\fPVE_HOST_RSA\x10\x01\"%\n" +
+	"\x11GetSshKeyResponse\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"5\n" +
+	"\x14GetCephAccessRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\"Y\n" +
+	"\x15GetCephAccessResponse\x12\x1b\n" +
+	"\tceph_conf\x18\x01 \x01(\tR\bcephConf\x12#\n" +
+	"\radmin_keyring\x18\x02 \x01(\tR\fadminKeyring\"T\n" +
 	"\x14GetKubeconfigRequest\x12\x1d\n" +
 	"\n" +
 	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1d\n" +
 	"\n" +
 	"stack_name\x18\x02 \x01(\tR\tstackName\"/\n" +
 	"\x15GetKubeconfigResponse\x12\x16\n" +
-	"\x06config\x18\x01 \x01(\tR\x06config2`\n" +
-	"\fCloudService\x12P\n" +
-	"\x13GetMasterKubeconfig\x12\x1b.cloud.GetKubeconfigRequest\x1a\x1c.cloud.GetKubeconfigResponseBYZWgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/proto;protob\x06proto3"
+	"\x06config\x18\x01 \x01(\tR\x06config\"6\n" +
+	"\x15GetClusterVarsRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\",\n" +
+	"\x16GetClusterVarsResponse\x12\x12\n" +
+	"\x04vars\x18\x01 \x01(\tR\x04vars\"W\n" +
+	"\x15GetCloudSecretRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1f\n" +
+	"\vsecret_name\x18\x02 \x01(\tR\n" +
+	"secretName\"0\n" +
+	"\x16GetCloudSecretResponse\x12\x16\n" +
+	"\x06secret\x18\x01 \x01(\tR\x06secret2\x87\x05\n" +
+	"\fCloudService\x12R\n" +
+	"\x13GetMasterKubeconfig\x12\x1c.protos.GetKubeconfigRequest\x1a\x1d.protos.GetKubeconfigResponse\x12O\n" +
+	"\x0eGetClusterVars\x12\x1d.protos.GetClusterVarsRequest\x1a\x1e.protos.GetClusterVarsResponse\x12O\n" +
+	"\x0eGetCloudSecret\x12\x1d.protos.GetCloudSecretRequest\x1a\x1e.protos.GetCloudSecretResponse\x12L\n" +
+	"\rGetCephAccess\x12\x1c.protos.GetCephAccessRequest\x1a\x1d.protos.GetCephAccessResponse\x12@\n" +
+	"\tGetSshKey\x12\x18.protos.GetSshKeyRequest\x1a\x19.protos.GetSshKeyResponse\x12L\n" +
+	"\rGetProxmoxApi\x12\x1c.protos.GetProxmoxApiRequest\x1a\x1d.protos.GetProxmoxApiResponse\x12O\n" +
+	"\x0eGetProxmoxHost\x12\x1d.protos.GetProxmoxHostRequest\x1a\x1e.protos.GetProxmoxHostResponse\x12R\n" +
+	"\x0fGetPveInventory\x12\x1e.protos.GetPveInventoryRequest\x1a\x1f.protos.GetPveInventoryResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protosb\x06proto3"
 
 var (
 	file_protos_cloud_proto_rawDescOnce sync.Once
@@ -144,19 +910,52 @@ func file_protos_cloud_proto_rawDescGZIP() []byte {
 	return file_protos_cloud_proto_rawDescData
 }
 
-var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_protos_cloud_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_protos_cloud_proto_goTypes = []any{
-	(*GetKubeconfigRequest)(nil),  // 0: cloud.GetKubeconfigRequest
-	(*GetKubeconfigResponse)(nil), // 1: cloud.GetKubeconfigResponse
+	(GetSshKeyRequest_KeyType)(0),   // 0: protos.GetSshKeyRequest.KeyType
+	(*GetPveInventoryRequest)(nil),  // 1: protos.GetPveInventoryRequest
+	(*GetPveInventoryResponse)(nil), // 2: protos.GetPveInventoryResponse
+	(*GetProxmoxHostRequest)(nil),   // 3: protos.GetProxmoxHostRequest
+	(*GetProxmoxHostResponse)(nil),  // 4: protos.GetProxmoxHostResponse
+	(*GetProxmoxApiRequest)(nil),    // 5: protos.GetProxmoxApiRequest
+	(*GetProxmoxApiResponse)(nil),   // 6: protos.GetProxmoxApiResponse
+	(*GetSshKeyRequest)(nil),        // 7: protos.GetSshKeyRequest
+	(*GetSshKeyResponse)(nil),       // 8: protos.GetSshKeyResponse
+	(*GetCephAccessRequest)(nil),    // 9: protos.GetCephAccessRequest
+	(*GetCephAccessResponse)(nil),   // 10: protos.GetCephAccessResponse
+	(*GetKubeconfigRequest)(nil),    // 11: protos.GetKubeconfigRequest
+	(*GetKubeconfigResponse)(nil),   // 12: protos.GetKubeconfigResponse
+	(*GetClusterVarsRequest)(nil),   // 13: protos.GetClusterVarsRequest
+	(*GetClusterVarsResponse)(nil),  // 14: protos.GetClusterVarsResponse
+	(*GetCloudSecretRequest)(nil),   // 15: protos.GetCloudSecretRequest
+	(*GetCloudSecretResponse)(nil),  // 16: protos.GetCloudSecretResponse
+	nil,                             // 17: protos.GetProxmoxApiRequest.GetArgsEntry
 }
 var file_protos_cloud_proto_depIdxs = []int32{
-	0, // 0: cloud.CloudService.GetMasterKubeconfig:input_type -> cloud.GetKubeconfigRequest
-	1, // 1: cloud.CloudService.GetMasterKubeconfig:output_type -> cloud.GetKubeconfigResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	17, // 0: protos.GetProxmoxApiRequest.get_args:type_name -> protos.GetProxmoxApiRequest.GetArgsEntry
+	0,  // 1: protos.GetSshKeyRequest.key_type:type_name -> protos.GetSshKeyRequest.KeyType
+	11, // 2: protos.CloudService.GetMasterKubeconfig:input_type -> protos.GetKubeconfigRequest
+	13, // 3: protos.CloudService.GetClusterVars:input_type -> protos.GetClusterVarsRequest
+	15, // 4: protos.CloudService.GetCloudSecret:input_type -> protos.GetCloudSecretRequest
+	9,  // 5: protos.CloudService.GetCephAccess:input_type -> protos.GetCephAccessRequest
+	7,  // 6: protos.CloudService.GetSshKey:input_type -> protos.GetSshKeyRequest
+	5,  // 7: protos.CloudService.GetProxmoxApi:input_type -> protos.GetProxmoxApiRequest
+	3,  // 8: protos.CloudService.GetProxmoxHost:input_type -> protos.GetProxmoxHostRequest
+	1,  // 9: protos.CloudService.GetPveInventory:input_type -> protos.GetPveInventoryRequest
+	12, // 10: protos.CloudService.GetMasterKubeconfig:output_type -> protos.GetKubeconfigResponse
+	14, // 11: protos.CloudService.GetClusterVars:output_type -> protos.GetClusterVarsResponse
+	16, // 12: protos.CloudService.GetCloudSecret:output_type -> protos.GetCloudSecretResponse
+	10, // 13: protos.CloudService.GetCephAccess:output_type -> protos.GetCephAccessResponse
+	8,  // 14: protos.CloudService.GetSshKey:output_type -> protos.GetSshKeyResponse
+	6,  // 15: protos.CloudService.GetProxmoxApi:output_type -> protos.GetProxmoxApiResponse
+	4,  // 16: protos.CloudService.GetProxmoxHost:output_type -> protos.GetProxmoxHostResponse
+	2,  // 17: protos.CloudService.GetPveInventory:output_type -> protos.GetPveInventoryResponse
+	10, // [10:18] is the sub-list for method output_type
+	2,  // [2:10] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_protos_cloud_proto_init() }
@@ -169,13 +968,14 @@ func file_protos_cloud_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protos_cloud_proto_rawDesc), len(file_protos_cloud_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   2,
+			NumEnums:      1,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_protos_cloud_proto_goTypes,
 		DependencyIndexes: file_protos_cloud_proto_depIdxs,
+		EnumInfos:         file_protos_cloud_proto_enumTypes,
 		MessageInfos:      file_protos_cloud_proto_msgTypes,
 	}.Build()
 	File_protos_cloud_proto = out.File
