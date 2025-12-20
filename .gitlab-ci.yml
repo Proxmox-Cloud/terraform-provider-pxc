@@ -33,8 +33,9 @@ goreleaser:
     - push_github # goreleaser needs tag on github to create release there
   image: goreleaser/goreleaser:v2.13.1
   script:
+    - apk add gpg-agent # missing in goreleaser todo: build into image
     - echo "$GPG_EXPORTED_KEY_B64" | base64 -d > gpg-key.asc
-    - gpg --import gpg-key.asc
+    - gpg --batch --import gpg-key.asc
     - goreleaser release # rest is sourced via env vars set by ci
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
