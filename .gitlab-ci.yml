@@ -30,7 +30,7 @@ push_github:
 goreleaser:
   stage: deploy
   needs: 
-    - push_github
+    - push_github # goreleaser needs tag on github to create release there
   image: goreleaser/goreleaser:v2.13.1
   script:
     - echo "$GPG_EXPORTED_KEY_B64" | base64 -d > gpg-key.asc
