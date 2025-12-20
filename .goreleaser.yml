@@ -61,4 +61,6 @@ changelog:
   disable: true
 
 git:
+  # need ordering by creation date to not take release- tags and
+  # fail goreleaser
   tag_sort: -version:creatordate

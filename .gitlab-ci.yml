@@ -40,3 +40,16 @@ goreleaser:
     - goreleaser release # rest is sourced via env vars set by ci
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
+
+  
+downstream_tf_controller_module:
+  stage: deploy
+  needs:
+    - goreleaser
+  trigger:
+    project: "pve-cloud/terraform-proxmox-cloud-controller"
+  variables:
+    PXC_PROV_VERSION: $CI_COMMIT_TAG
+    UPSTREAM_TAG_MESSAGE: $CI_COMMIT_TAG_MESSAGE # here we store the type of the release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
