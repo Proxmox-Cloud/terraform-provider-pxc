@@ -8,11 +8,20 @@ build_commands = [
   ],
   [
     "go", "build", "-ldflags=-X main.version=$VERSION", "-o", "~/.tdd-providers/registry.terraform.io/pxc/proxmox-cloud/$VERSION/linux_$ARCH/terraform-provider-proxmox-cloud_v$VERSION"
-  ],
+  ]
+]
+
+
+[build]
+build_commands = [
   [
     "pip", "install", "-e", "."
   ]
 ]
+version_py_path = "src/pve_cloud_rpc/_version.py"
+
 
 [redis]
 version_key = "version.tf-prov-proxmox-cloud"
+sub_rebuild_keys = []
+env_key_mapping = {}

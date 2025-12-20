@@ -35,10 +35,9 @@ website/vendor
 *.winfile eol=crlf
 
 
-.gnupg
 
-
-
+_version.py
 __pycache__
 META.d/
 *.egg-info
+
