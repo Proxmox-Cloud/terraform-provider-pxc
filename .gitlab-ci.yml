@@ -29,7 +29,8 @@ push_github:
 
 goreleaser:
   stage: deploy
-  needs: push_github
+  needs: 
+    - push_github
   image: goreleaser/goreleaser:v2.13.1
   script:
     - echo "$GPG_EXPORTED_KEY_B64" | base64 -d > gpg-key.asc
