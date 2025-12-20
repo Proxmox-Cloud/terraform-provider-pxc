@@ -59,3 +59,12 @@ release:
   # draft: true
 changelog:
   disable: true
+
+git:
+  ignore_tags:
+    - release-patch
+    - release-minor
+    - release-major
+    - release-all-patch
+    - release-all-minor
+    - release-all-major

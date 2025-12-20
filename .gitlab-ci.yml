@@ -37,8 +37,6 @@ goreleaser:
     - echo "$GPG_EXPORTED_KEY_B64" | base64 -d > gpg-key.asc
     - gpg --batch --import gpg-key.asc
     - rm gpg-key.asc # remove the key, goreleaser needs clean state
-    - ls
-    - export GITHUB_TAG=$CI_COMMIT_TAG
     - goreleaser release # rest is sourced via env vars set by ci
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
