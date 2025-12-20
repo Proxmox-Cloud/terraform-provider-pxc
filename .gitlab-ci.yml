@@ -1,0 +1,27 @@
+# trigger a new release on gitlab
+release_tag:
+  stage: build
+  image: tobiashvmz/pve-cloud-ci:2025121321
+  script:
+    - pwd
+    - /scripts/release-tag.sh
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^release-[a-z]+$/'
+    - if: '$CI_COMMIT_TAG =~ /^release-all-[a-z]+$/'
+  resource_group: deploy-prod
+
+# push the new tag to github so goreleaser can do its job
+publish_github:
+  stage: deploy
+  image: tobiashvmz/pve-cloud-ci:2025121321
+  script:
+    - git config --global user.name "$GITLAB_USER_NAME"
+    - git config --global user.email "$GITLAB_USER_EMAIL"
+
+    # add github remote
+    - git remote add github https://$GITHUB_TOKEN@github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud.git
+    - git push github HEAD:master
+    - git push github $CI_COMMIT_TAG
+
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
