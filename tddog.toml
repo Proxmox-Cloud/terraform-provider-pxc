@@ -4,10 +4,10 @@ build_commands = [
     "rm", "-rf",  "~/.tdd-providers"
   ],
   [
-    "mkdir", "-p", "~/.tdd-providers/registry.terraform.io/pxc/proxmox-cloud/$VERSION/linux_$ARCH/"
+    "mkdir", "-p", "~/.tdd-providers/registry.terraform.io/Proxmox-Cloud/pxc/$VERSION/linux_$ARCH/"
   ],
   [
-    "go", "build", "-ldflags=-X main.version=$VERSION", "-o", "~/.tdd-providers/registry.terraform.io/pxc/proxmox-cloud/$VERSION/linux_$ARCH/terraform-provider-pxc_v$VERSION"
+    "go", "build", "-ldflags=-X main.version=$VERSION", "-o", "~/.tdd-providers/registry.terraform.io/Proxmox-Cloud/pxc/$VERSION/linux_$ARCH/terraform-provider-pxc_v$VERSION"
   ]
 ]
 

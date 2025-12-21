@@ -65,7 +65,7 @@ downstream_tf_controller_module:
   needs:
     - goreleaser
   trigger:
-    project: "pve-cloud/terraform-proxmox-cloud-controller"
+    project: "pve-cloud/terraform-pxc-controller"
   variables:
     PXC_PROV_VERSION: $CI_COMMIT_TAG
     UPSTREAM_TAG_MESSAGE: $CI_COMMIT_TAG_MESSAGE # here we store the type of the release
@@ -78,7 +78,7 @@ downstream_tf_backup_module:
   needs:
     - goreleaser
   trigger:
-    project: "pve-cloud/terraform-proxmox-cloud-backup"
+    project: "pve-cloud/terraform-pxc-backup"
   variables:
     PXC_PROV_VERSION: $CI_COMMIT_TAG
     UPSTREAM_TAG_MESSAGE: $CI_COMMIT_TAG_MESSAGE # here we store the type of the release
