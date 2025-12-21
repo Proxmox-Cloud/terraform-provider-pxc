@@ -2,3 +2,4 @@
 py-pve-cloud>=0.13.11,<0.14.0
 grpcio==1.76.0
 asyncssh==2.21.0
+protobuf==6.33.2

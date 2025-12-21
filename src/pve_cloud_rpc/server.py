@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 import asyncio, asyncssh
 import grpc
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2

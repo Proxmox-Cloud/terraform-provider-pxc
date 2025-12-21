@@ -48,7 +48,7 @@ func startPythonGrpc() *exec.Cmd {
 	pytestCurrent := os.Getenv("PYTEST_CURRENT_TEST")
 
 	// only install the pypi package if not in e2e scenario (in this case its installed via pip -e .)
-	if pytestCurrent == "" {
+	if pytestCurrent == "" && version != "dev" {
 		// package will be published to pypi with same version tag as provider
 		// todo: check against installed version and prevent from removing / missmatching
 		pipCmd := exec.Command(fmt.Sprintf("%s/bin/pip", virtualEnv), "install", fmt.Sprintf("rpyc-pve-cloud==%s", version))
@@ -117,20 +117,20 @@ func main() {
 		// TODO: Update this string with the published name of your provider.
 		// Also update the tfplugindocs generate command to either remove the
 		// -provider-name flag or set its value to the updated provider name.
-		Address: "registry.terraform.io/hashicorp/scaffolding",
+		Address: "registry.terraform.io/proxmox-cloud/proxmox-cloud",
 		Debug:   debug,
 	}
 
 	//start our python rpc server here
-	cmd := startPythonGrpc()
+	// cmd := startPythonGrpc()
 
-	// Ensure cleanup of the Python server even if Serve panics or exits unexpectedly
-	defer func() {
-		// Kill the Python server after Serve finishes (even if it panics)
-		if cerr := cmd.Process.Kill(); cerr != nil {
-			log.Printf("Failed to kill Python backend: %v", cerr)
-		}
-	}()
+	// // Ensure cleanup of the Python server even if Serve panics or exits unexpectedly
+	// defer func() {
+	// 	// Kill the Python server after Serve finishes (even if it panics)
+	// 	if cerr := cmd.Process.Kill(); cerr != nil {
+	// 		log.Printf("Failed to kill Python backend: %v", cerr)
+	// 	}
+	// }()
 
 	err := providerserver.Serve(context.Background(), provider.New(version), opts)
 
