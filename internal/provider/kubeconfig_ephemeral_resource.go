@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
@@ -85,7 +86,7 @@ func (r *KubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral.Op
 
 	// init rpc client
 	conn, err := grpc.NewClient(
-		"localhost:50052",
+		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

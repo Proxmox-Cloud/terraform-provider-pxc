@@ -6,12 +6,13 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	 "github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"time"
 
@@ -35,7 +36,7 @@ type SshKeyDataSource struct {
 // SshKeyDataSourceModel describes the data source data model.
 type SshKeyDataSourceModel struct {
 	KeyType types.String `tfsdk:"key_type"`
-	Key types.String `tfsdk:"key"`
+	Key     types.String `tfsdk:"key"`
 }
 
 func (d *SshKeyDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -99,7 +100,7 @@ func (d *SshKeyDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// init rpc client
 	conn, err := grpc.NewClient(
-		"localhost:50052",
+		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -16,6 +17,7 @@ import (
 	pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -33,7 +35,7 @@ type CloudSecretDataSource struct {
 // CloudSecretDataSourceModel describes the data source data model.
 type CloudSecretDataSourceModel struct {
 	SecretName types.String `tfsdk:"secret_name"`
-	Secret types.String `tfsdk:"secret"`
+	Secret     types.String `tfsdk:"secret"`
 }
 
 func (d *CloudSecretDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -86,8 +88,9 @@ func (d *CloudSecretDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	// init rpc client
+	tflog.Info(ctx, fmt.Sprintf("Connecting to unix:///tmp/pc-rpc-%d.sock", os.Getpid()))
 	conn, err := grpc.NewClient(
-		"localhost:50052",
+		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -101,7 +104,7 @@ func (d *CloudSecretDataSource) Read(ctx context.Context, req datasource.ReadReq
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{TargetPve: d.providerModel.TargetPve.ValueString() ,SecretName: data.SecretName.ValueString()})
+	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{TargetPve: d.providerModel.TargetPve.ValueString(), SecretName: data.SecretName.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 		return

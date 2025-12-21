@@ -16,6 +16,9 @@ import (
 	pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"os"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -32,7 +35,7 @@ type CephAccessDataSource struct {
 
 // CephAccessDataSourceModel describes the data source data model.
 type CephAccessDataSourceModel struct {
-	CephConf types.String `tfsdk:"ceph_conf"`
+	CephConf     types.String `tfsdk:"ceph_conf"`
 	AdminKeyring types.String `tfsdk:"admin_keyring"`
 }
 
@@ -86,8 +89,9 @@ func (d *CephAccessDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 
 	// init rpc client
+	tflog.Info(ctx, fmt.Sprintf("Connecting to unix:///tmp/pc-rpc-%d.sock", os.Getpid()))
 	conn, err := grpc.NewClient(
-		"localhost:50052",
+		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

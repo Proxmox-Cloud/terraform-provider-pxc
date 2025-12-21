@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -32,9 +33,9 @@ type PveApiGetDataSource struct {
 
 // PveApiGetDataSourceModel describes the data source data model.
 type PveApiGetDataSourceModel struct {
-	ApiPath types.String `tfsdk:"api_path"`
-	GetArgs types.Map `tfsdk:"get_args"`
-	JsonResp types.String `tfsdk:"json_resp"`
+	ApiPath   types.String `tfsdk:"api_path"`
+	GetArgs   types.Map    `tfsdk:"get_args"`
+	JsonResp  types.String `tfsdk:"json_resp"`
 	TargetPve types.String `tfsdk:"target_pve"`
 }
 
@@ -56,7 +57,7 @@ func (d *PveApiGetDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				Optional:    true,
 			},
 			"target_pve": schema.StringAttribute{
-				Optional:    true,
+				Optional: true,
 			},
 			"json_resp": schema.StringAttribute{
 				Computed:            true,
@@ -96,7 +97,7 @@ func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	// init rpc client
 	conn, err := grpc.NewClient(
-		"localhost:50052",
+		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

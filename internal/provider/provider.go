@@ -14,17 +14,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	// "github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"fmt"
+	// "fmt"
 
-	"os"
-	"os/exec"
+	// "os"
+	// "os/exec"
 
-	"time"
-    "google.golang.org/grpc"
-    "google.golang.org/grpc/credentials/insecure"
-    pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
+	// "os/signal"
+	// "syscall"
+
+	// "time"
+	// "google.golang.org/grpc"
+	// "google.golang.org/grpc/credentials/insecure"
+	// pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
 )
 
 // Ensure PxcProvider satisfies various provider interfaces.
@@ -45,7 +48,6 @@ type PxcProvider struct {
 type PxcProviderModel struct {
 	TargetPve    types.String `tfsdk:"target_pve"`
 	K8sStackName types.String `tfsdk:"k8s_stack_name"`
-	PythonPath   types.String `tfsdk:"python_path"`
 }
 
 func (p *PxcProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -64,12 +66,9 @@ func (p *PxcProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 				MarkdownDescription: "Stack name of your kubespray cluster defined in the custom inventory file.",
 				Required:            true,
 			},
-			"python_path": schema.StringAttribute{
-				MarkdownDescription: "Path to python interpreters folder for example /usr/local or ~/.pve-cloud-venv, defaults to $VIRUAL_ENV set by pythons venv activate function.",
-				Optional:            true,
-			},
 		},
 	}
+	
 }
 
 func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
@@ -85,114 +84,6 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	resp.DataSourceData = data
 	resp.ResourceData = data
 	resp.EphemeralResourceData = data
-
-	// todo: when needed give more options on toggeling python grpc server
-	tflog.Info(ctx, fmt.Sprintf("provider version %s", p.version))
-
-	if data.PythonPath.IsNull() {
-		// user didnt specify, try to fallback to VENV
-		virtualEnv := os.Getenv("VIRTUAL_ENV")
-		if virtualEnv == "" {
-			resp.Diagnostics.AddError(
-				"Failed to start Python backend",
-				"No python_path specified in provider and $VIRTUAL_ENV undefined",
-			)
-			return
-		}
-		data.PythonPath = types.StringValue(virtualEnv)
-	}
-
-	tflog.Info(ctx, fmt.Sprintf("python path set to %s", data.PythonPath.ValueString()))
-
-	pytestCurrent := os.Getenv("PYTEST_CURRENT_TEST")
-	tflog.Info(ctx, fmt.Sprintf("pytest current is %s", pytestCurrent))
-
-	// only install the pypi package if not in e2e scenario (in this case its installed via pip -e .)
-	if pytestCurrent == "" {
-		tflog.Info(ctx, fmt.Sprintf("installing rpyc-pve-cloud==%s", p.version))
-
-		// package will be published to pypi with same version tag as provider
-		// todo: check against installed version and prevent from removing / missmatching
-		pipCmd := exec.Command(fmt.Sprintf("%s/bin/pip", data.PythonPath.ValueString()), "install", fmt.Sprintf("rpyc-pve-cloud==%s", p.version))
-
-		output, err := pipCmd.CombinedOutput()
-		if err != nil {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Command failed with error: %v", err),
-				string(output),
-			)
-			return
-		}
-	}
-	
-	// start pyhon grpc server as daemon
-	cmd := exec.Command(fmt.Sprintf("%s/bin/pcrpc", data.PythonPath.ValueString()))
-	tflog.Info(ctx, fmt.Sprintf("started %s/bin/pcrpc", data.PythonPath.ValueString()))
-
-	if err := cmd.Start(); err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to start Python backend",
-			err.Error(),
-		)
-		return
-	}
-
-	// wait for it to be up
-	deadline := time.Now().Add(10 * time.Second)
-
-	for {
-		if time.Now().After(deadline) {
-			resp.Diagnostics.AddError(
-				"Failed to start Python backend",
-				"Deadline exceeded",
-			)
-			return
-		}
-
-		// try connect via grpc and health check
-		conn, err := grpc.NewClient(
-			"localhost:50052",
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-		)
-		if err != nil {
-			select {
-				case <-ctx.Done():
-					return // return should context get cancelled
-				case <-time.After(200 * time.Millisecond):
-					tflog.Info(ctx, "pcrpc not yet up... retrying!")
-					continue
-			}
-		}
-
-		defer conn.Close()
-
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-
-	
-		healthClient := pb.NewHealthClient(conn)
-
-		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{})
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Grpc health check failed, this shouldnt happen!",
-				err.Error(),
-			)
-			return
-		}
-
-		if hresp.Status != pb.HealthCheckResponse_SERVING {
-			select {
-				case <-ctx.Done():
-					return // return should context get cancelled
-				case <-time.After(200 * time.Millisecond):
-					tflog.Info(ctx, "pcrpc not yet serving... retrying!")
-					continue
-			}
-		}
-
-		break // its up and running
-	}
 
 }
 

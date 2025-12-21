@@ -8,6 +8,7 @@ from pve_cloud.lib.inventory import *
 from pve_cloud.cli.pvclu import get_cluster_vars, get_ssh_master_kubeconfig
 import yaml
 import socket
+import sys
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
@@ -136,24 +137,32 @@ async def serve():
     health_servicer = HealthServicer()
     health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)
 
-    if is_port_bound(50052): # google quirks nice
-        raise RuntimeError("PCRPC Already running / unclean shutdown!")
+    # if is_port_bound(50052): # google quirks nice
+    #     raise RuntimeError("PCRPC Already running / unclean shutdown!")
     
-    listen_addr = "[::]:50052"
-    server.add_insecure_port(listen_addr) 
+    socket_file = f"/tmp/pc-rpc-{sys.argv[1]}.sock"
+
+    # listen_addr = "[::]:50052"
+    server.add_insecure_port(f"unix://{socket_file}") 
     await server.start()
 
     health_servicer.set_status(
         "",  # empty = overall server health
         health_pb2.HealthCheckResponse.SERVING
     )
-    print(f"gRPC AsyncIO server running on {listen_addr}")
+    # print(f"gRPC AsyncIO server running on {listen_addr}")
+    print(f"gRPC AsyncIO server running on {socket_file}")
     try:
         await server.wait_for_termination()
     finally:
         # Ensure cleanup
         await server.stop(grace=0)
         print("gRPC server stopped and port released.")
+
+        # delete unix socket file
+        if os.path.exists(socket_file):
+            os.remove(socket_file)
+
 
 
 def main():

@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -32,7 +33,7 @@ type PveInventoryDataSource struct {
 
 // PveInventoryDataSourceModel describes the data source data model.
 type PveInventoryDataSourceModel struct {
-	Inventory types.String `tfsdk:"inventory"`
+	Inventory   types.String `tfsdk:"inventory"`
 	CloudDomain types.String `tfsdk:"cloud_domain"`
 }
 
@@ -87,7 +88,7 @@ func (d *PveInventoryDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	// init rpc client
 	conn, err := grpc.NewClient(
-		"localhost:50052",
+		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
