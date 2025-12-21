@@ -61,6 +61,9 @@ func main() {
 	
 	err := providerserver.Serve(context.Background(), provider.New(version, exitCh), opts)
 
+	exitCh <- true // send exit signal to rypc goroutne
+	<-exitCh // wait for kill done response
+ 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
