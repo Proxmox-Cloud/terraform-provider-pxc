@@ -14,10 +14,10 @@ import (
 
 	"time"
 
-	pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.

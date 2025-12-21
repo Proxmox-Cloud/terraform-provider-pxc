@@ -9,11 +9,12 @@
 package protos
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -178,7 +179,7 @@ const file_protos_health_proto_rawDesc = "" +
 	"\vNOT_SERVING\x10\x02\x12\x13\n" +
 	"\x0fSERVICE_UNKNOWN\x10\x032J\n" +
 	"\x06Health\x12@\n" +
-	"\x05Check\x12\x1a.protos.HealthCheckRequest\x1a\x1b.protos.HealthCheckResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protosb\x06proto3"
+	"\x05Check\x12\x1a.protos.HealthCheckRequest\x1a\x1b.protos.HealthCheckResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
 
 var (
 	file_protos_health_proto_rawDescOnce sync.Once

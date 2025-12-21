@@ -51,7 +51,7 @@ signs:
 release:
   github:
     owner: Proxmox-Cloud
-    name: terraform-provider-proxmox-cloud
+    name: terraform-provider-pxc
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'

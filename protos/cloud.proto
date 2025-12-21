@@ -5,7 +5,7 @@ syntax = "proto3";
 
 package protos;
 
-option go_package = "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protos";
+option go_package = "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protos";
 
 service CloudService {
   rpc GetMasterKubeconfig(GetKubeconfigRequest) returns (GetKubeconfigResponse);

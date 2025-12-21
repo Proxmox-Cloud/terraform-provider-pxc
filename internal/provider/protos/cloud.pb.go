@@ -7,11 +7,12 @@
 package protos
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -896,7 +897,7 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"\tGetSshKey\x12\x18.protos.GetSshKeyRequest\x1a\x19.protos.GetSshKeyResponse\x12L\n" +
 	"\rGetProxmoxApi\x12\x1c.protos.GetProxmoxApiRequest\x1a\x1d.protos.GetProxmoxApiResponse\x12O\n" +
 	"\x0eGetProxmoxHost\x12\x1d.protos.GetProxmoxHostRequest\x1a\x1e.protos.GetProxmoxHostResponse\x12R\n" +
-	"\x0fGetPveInventory\x12\x1e.protos.GetPveInventoryRequest\x1a\x1f.protos.GetPveInventoryResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protosb\x06proto3"
+	"\x0fGetPveInventory\x12\x1e.protos.GetPveInventoryRequest\x1a\x1f.protos.GetPveInventoryResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
 
 var (
 	file_protos_cloud_proto_rawDescOnce sync.Once

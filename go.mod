@@ -1,4 +1,4 @@
-module github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud
+module github.com/Proxmox-Cloud/terraform-provider-pxc
 
 go 1.24.0
 

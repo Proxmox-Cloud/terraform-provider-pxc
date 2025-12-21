@@ -15,19 +15,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	// "github.com/hashicorp/terraform-plugin-log/tflog"
-
 	// "fmt"
-
 	// "os"
 	// "os/exec"
-
 	// "os/signal"
 	// "syscall"
-
 	// "time"
 	// "google.golang.org/grpc"
 	// "google.golang.org/grpc/credentials/insecure"
-	// pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
+	// pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 )
 
 // Ensure PxcProvider satisfies various provider interfaces.
@@ -68,7 +64,7 @@ func (p *PxcProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 			},
 		},
 	}
-	
+
 }
 
 func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
@@ -88,8 +84,7 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 }
 
 func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-	}
+	return []func() resource.Resource{}
 }
 
 func (p *PxcProvider) EphemeralResources(ctx context.Context) []func() ephemeral.EphemeralResource {
@@ -111,13 +106,11 @@ func (p *PxcProvider) DataSources(ctx context.Context) []func() datasource.DataS
 }
 
 func (p *PxcProvider) Functions(ctx context.Context) []func() function.Function {
-	return []func() function.Function{
-	}
+	return []func() function.Function{}
 }
 
 func (p *PxcProvider) Actions(ctx context.Context) []func() action.Action {
-	return []func() action.Action{
-	}
+	return []func() action.Action{}
 }
 
 func New(version string) func() provider.Provider {

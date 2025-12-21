@@ -13,11 +13,12 @@ import (
 
 	"time"
 
-	pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"os"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 

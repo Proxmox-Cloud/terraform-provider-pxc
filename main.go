@@ -8,7 +8,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider"
+	"github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	"fmt"
@@ -16,10 +16,11 @@ import (
 	"os/exec"
 	"time"
 
+	"strconv"
+
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos"
-	"strconv"
 )
 
 var (
@@ -31,8 +32,7 @@ var (
 	// https://goreleaser.com/cookbooks/using-main.version/
 )
 
-
-// we cant do any printing in this function because that messes with the provider schema 
+// we cant do any printing in this function because that messes with the provider schema
 // initialization. but we still want to hook into the main process for starting and
 // killing our python grpc server daemon
 func startPythonGrpc() *exec.Cmd {

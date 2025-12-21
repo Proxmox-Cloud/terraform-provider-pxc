@@ -27,14 +27,14 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0chealth.proto\x12\x06protos\"%\n\x12HealthCheckRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\"\xa1\x01\n\x13HealthCheckResponse\x12\x39\n\x06status\x18\x01 \x01(\x0e\x32).protos.HealthCheckResponse.ServingStatus\"O\n\rServingStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07SERVING\x10\x01\x12\x0f\n\x0bNOT_SERVING\x10\x02\x12\x13\n\x0fSERVICE_UNKNOWN\x10\x03\x32J\n\x06Health\x12@\n\x05\x43heck\x12\x1a.protos.HealthCheckRequest\x1a\x1b.protos.HealthCheckResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protosb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0chealth.proto\x12\x06protos\"%\n\x12HealthCheckRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\"\xa1\x01\n\x13HealthCheckResponse\x12\x39\n\x06status\x18\x01 \x01(\x0e\x32).protos.HealthCheckResponse.ServingStatus\"O\n\rServingStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07SERVING\x10\x01\x12\x0f\n\x0bNOT_SERVING\x10\x02\x12\x13\n\x0fSERVICE_UNKNOWN\x10\x03\x32J\n\x06Health\x12@\n\x05\x43heck\x12\x1a.protos.HealthCheckRequest\x1a\x1b.protos.HealthCheckResponseB[ZYgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'health_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'ZYgithub.com/Proxmox-Cloud/terraform-provider-proxmox-cloud/internal/provider/protos;protos'
+  _globals['DESCRIPTOR']._serialized_options = b'ZYgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protos'
   _globals['_HEALTHCHECKREQUEST']._serialized_start=24
   _globals['_HEALTHCHECKREQUEST']._serialized_end=61
   _globals['_HEALTHCHECKRESPONSE']._serialized_start=64
