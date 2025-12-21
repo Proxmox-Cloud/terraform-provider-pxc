@@ -13,7 +13,6 @@ build_commands = [
 
 
 [local]
-filter_requirements = { "py-pve-cloud" = "version.py-pve-cloud" }
 dyn_version_py_path = "src/pve_cloud_rpc/_version.py"
 dep_build_keys = [
   "version.py-pve-cloud"
