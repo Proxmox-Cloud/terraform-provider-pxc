@@ -1,5 +1,5 @@
 # pessimistic operator for local tdd installs (pip install -e .)
-py-pve-cloud>=0.13.11,<0.14.0
+py-pve-cloud>=0.13.12,<0.14.0
 grpcio==1.76.0
 asyncssh==2.21.0
 protobuf==6.33.2
