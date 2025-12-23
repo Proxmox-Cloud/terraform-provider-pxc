@@ -1,6 +1,3 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
 import asyncio, asyncssh
 import grpc
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
@@ -139,13 +136,9 @@ async def serve():
 
     health_servicer = HealthServicer()
     health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)
-
-    # if is_port_bound(50052): # google quirks nice
-    #     raise RuntimeError("PCRPC Already running / unclean shutdown!")
     
     socket_file = f"/tmp/pc-rpc-{sys.argv[1]}.sock"
 
-    # listen_addr = "[::]:50052"
     server.add_insecure_port(f"unix://{socket_file}") 
     await server.start()
 
@@ -153,7 +146,7 @@ async def serve():
         "",  # empty = overall server health
         health_pb2.HealthCheckResponse.SERVING
     )
-    # print(f"gRPC AsyncIO server running on {listen_addr}")
+
     print(f"gRPC AsyncIO server running on {socket_file}")
     try:
         await server.wait_for_termination()
@@ -165,7 +158,6 @@ async def serve():
         # delete unix socket file
         if os.path.exists(socket_file):
             os.remove(socket_file)
-
 
 
 def main():
