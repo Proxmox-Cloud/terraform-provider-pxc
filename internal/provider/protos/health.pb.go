@@ -29,25 +29,19 @@ const (
 type HealthCheckResponse_ServingStatus int32
 
 const (
-	HealthCheckResponse_UNKNOWN         HealthCheckResponse_ServingStatus = 0
-	HealthCheckResponse_SERVING         HealthCheckResponse_ServingStatus = 1
-	HealthCheckResponse_NOT_SERVING     HealthCheckResponse_ServingStatus = 2
-	HealthCheckResponse_SERVICE_UNKNOWN HealthCheckResponse_ServingStatus = 3 // Used only by the Watch method.
+	HealthCheckResponse_SERVING   HealthCheckResponse_ServingStatus = 0
+	HealthCheckResponse_MISSMATCH HealthCheckResponse_ServingStatus = 1
 )
 
 // Enum value maps for HealthCheckResponse_ServingStatus.
 var (
 	HealthCheckResponse_ServingStatus_name = map[int32]string{
-		0: "UNKNOWN",
-		1: "SERVING",
-		2: "NOT_SERVING",
-		3: "SERVICE_UNKNOWN",
+		0: "SERVING",
+		1: "MISSMATCH",
 	}
 	HealthCheckResponse_ServingStatus_value = map[string]int32{
-		"UNKNOWN":         0,
-		"SERVING":         1,
-		"NOT_SERVING":     2,
-		"SERVICE_UNKNOWN": 3,
+		"SERVING":   0,
+		"MISSMATCH": 1,
 	}
 )
 
@@ -80,7 +74,7 @@ func (HealthCheckResponse_ServingStatus) EnumDescriptor() ([]byte, []int) {
 
 type HealthCheckRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Service       string                 `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -115,9 +109,9 @@ func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
 	return file_protos_health_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *HealthCheckRequest) GetService() string {
+func (x *HealthCheckRequest) GetTargetPve() string {
 	if x != nil {
-		return x.Service
+		return x.TargetPve
 	}
 	return ""
 }
@@ -125,6 +119,7 @@ func (x *HealthCheckRequest) GetService() string {
 type HealthCheckResponse struct {
 	state         protoimpl.MessageState            `protogen:"open.v1"`
 	Status        HealthCheckResponse_ServingStatus `protobuf:"varint,1,opt,name=status,proto3,enum=protos.HealthCheckResponse_ServingStatus" json:"status,omitempty"`
+	ErrorMessage  string                            `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -163,23 +158,30 @@ func (x *HealthCheckResponse) GetStatus() HealthCheckResponse_ServingStatus {
 	if x != nil {
 		return x.Status
 	}
-	return HealthCheckResponse_UNKNOWN
+	return HealthCheckResponse_SERVING
+}
+
+func (x *HealthCheckResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
 }
 
 var File_protos_health_proto protoreflect.FileDescriptor
 
 const file_protos_health_proto_rawDesc = "" +
 	"\n" +
-	"\x13protos/health.proto\x12\x06protos\".\n" +
-	"\x12HealthCheckRequest\x12\x18\n" +
-	"\aservice\x18\x01 \x01(\tR\aservice\"\xa9\x01\n" +
+	"\x13protos/health.proto\x12\x06protos\"3\n" +
+	"\x12HealthCheckRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\"\xaa\x01\n" +
 	"\x13HealthCheckResponse\x12A\n" +
-	"\x06status\x18\x01 \x01(\x0e2).protos.HealthCheckResponse.ServingStatusR\x06status\"O\n" +
+	"\x06status\x18\x01 \x01(\x0e2).protos.HealthCheckResponse.ServingStatusR\x06status\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"+\n" +
 	"\rServingStatus\x12\v\n" +
-	"\aUNKNOWN\x10\x00\x12\v\n" +
-	"\aSERVING\x10\x01\x12\x0f\n" +
-	"\vNOT_SERVING\x10\x02\x12\x13\n" +
-	"\x0fSERVICE_UNKNOWN\x10\x032J\n" +
+	"\aSERVING\x10\x00\x12\r\n" +
+	"\tMISSMATCH\x10\x012J\n" +
 	"\x06Health\x12@\n" +
 	"\x05Check\x12\x1a.protos.HealthCheckRequest\x1a\x1b.protos.HealthCheckResponseBQZOgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
 

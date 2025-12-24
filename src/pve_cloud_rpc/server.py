@@ -12,17 +12,16 @@ import sys
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
-    def __init__(self):
-        self._statuses = {}
 
+    # this also performs the py-pve-cloud version check to not run against incompatible
+    # installed proxmox cloud versions
     async def Check(self, request, context):
-        service_name = request.service or ""
-        status = self._statuses.get(service_name, health_pb2.HealthCheckResponse.UNKNOWN)
-        print(f"Health Check request for service '{service_name}', returning {status}")
-        return health_pb2.HealthCheckResponse(status=status)
-
-    def set_status(self, service_name: str, status: health_pb2.HealthCheckResponse.ServingStatus):
-        self._statuses[service_name] = status
+        target_pve = request.target_pve
+        try:
+            get_online_pve_host(target_pve, skip_py_cloud_check=False) # actually perform the check
+            return health_pb2.HealthCheckResponse(status=health_pb2.HealthCheckResponse.SERVING)
+        except RuntimeError as e:
+            return health_pb2.HealthCheckResponse(status=health_pb2.HealthCheckResponse.MISSMATCH, error_message=f"py-pve-cloud version check failed with: {e}") # go provider process will kill
 
 
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
@@ -141,11 +140,6 @@ async def serve():
 
     server.add_insecure_port(f"unix://{socket_file}") 
     await server.start()
-
-    health_servicer.set_status(
-        "",  # empty = overall server health
-        health_pb2.HealthCheckResponse.SERVING
-    )
 
     print(f"gRPC AsyncIO server running on {socket_file}")
     try:

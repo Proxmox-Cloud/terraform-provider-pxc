@@ -116,12 +116,21 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
+	// launch routine to kill the server
+	go func(){
+		<-p.exitCh // wait for exit signal
+		
+		cmd.Process.Kill() // kill
+
+		p.exitCh <- true // call finished
+	}()
+
 	// wait for rpc to come up and healthcheck to succeed
 	deadline := time.Now().Add(10 * time.Second)
 
 	for {
 		if time.Now().After(deadline) {
-			resp.Diagnostics.AddError("Failed to start Python backend", "Deadline exceeded")
+			resp.Diagnostics.AddError("Failed to start python grpc server", "Deadline exceeded")
 			return
 		}
 
@@ -140,13 +149,20 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		defer cancel()
 
 		healthClient := pb.NewHealthClient(conn)
-		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{})
+		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{TargetPve: data.TargetPve.ValueString()})
 
 		if err != nil {
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
 
+		if hresp.Status == pb.HealthCheckResponse_MISSMATCH {
+			resp.Diagnostics.AddError("Failed to start python grpc server", hresp.ErrorMessage)
+			return
+		}
+
+		// this case should never hit.
+		// todo: refactor
 		if hresp.Status != pb.HealthCheckResponse_SERVING {
 			time.Sleep(200 * time.Millisecond)
 			continue
@@ -155,14 +171,6 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		break // its up and running
 	}
 
-	// launch routine to kill the server
-	go func(){
-		<-p.exitCh // wait for exit signal
-		
-		cmd.Process.Kill() // kill
-
-		p.exitCh <- true // call finished
-	}()
 }
 
 func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource {
