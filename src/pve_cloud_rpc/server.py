@@ -68,7 +68,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             )
             catted_secret = cmd.stdout
 
-            if request.rstrip: # defaults to true but in special cases user might want to keep newlines (e.g. certs)
+            if (
+                request.rstrip
+            ):  # defaults to true but in special cases user might want to keep newlines (e.g. certs)
                 catted_secret = catted_secret.rstrip()
 
         return cloud_pb2.GetCloudSecretResponse(secret=catted_secret)
