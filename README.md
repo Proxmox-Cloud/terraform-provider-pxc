@@ -20,6 +20,7 @@ sed -i 's|import health_pb2|import pve_cloud_rpc.protos.health_pb2|g' src/pve_cl
 # need protocompiler 3 (installed via apt)
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
 export PATH="$PATH:$(go env GOPATH)/bin"
 protoc --go_out=./internal/provider --go_opt=paths=source_relative \
     --go-grpc_out=./internal/provider --go-grpc_opt=paths=source_relative \

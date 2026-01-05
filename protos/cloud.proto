@@ -87,6 +87,7 @@ message GetClusterVarsResponse {
 message GetCloudSecretRequest {
   string target_pve = 1;
   string secret_name = 2;
+  bool rstrip = 3;
 }
 
 message GetCloudSecretResponse {

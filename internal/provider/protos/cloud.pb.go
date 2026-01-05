@@ -738,6 +738,7 @@ type GetCloudSecretRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
 	SecretName    string                 `protobuf:"bytes,2,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
+	Rstrip        bool                   `protobuf:"varint,3,opt,name=rstrip,proto3" json:"rstrip,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -784,6 +785,13 @@ func (x *GetCloudSecretRequest) GetSecretName() string {
 		return x.SecretName
 	}
 	return ""
+}
+
+func (x *GetCloudSecretRequest) GetRstrip() bool {
+	if x != nil {
+		return x.Rstrip
+	}
+	return false
 }
 
 type GetCloudSecretResponse struct {
@@ -883,12 +891,13 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"\n" +
 	"target_pve\x18\x01 \x01(\tR\ttargetPve\",\n" +
 	"\x16GetClusterVarsResponse\x12\x12\n" +
-	"\x04vars\x18\x01 \x01(\tR\x04vars\"W\n" +
+	"\x04vars\x18\x01 \x01(\tR\x04vars\"o\n" +
 	"\x15GetCloudSecretRequest\x12\x1d\n" +
 	"\n" +
 	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1f\n" +
 	"\vsecret_name\x18\x02 \x01(\tR\n" +
-	"secretName\"0\n" +
+	"secretName\x12\x16\n" +
+	"\x06rstrip\x18\x03 \x01(\bR\x06rstrip\"0\n" +
 	"\x16GetCloudSecretResponse\x12\x16\n" +
 	"\x06secret\x18\x01 \x01(\tR\x06secret2\x87\x05\n" +
 	"\fCloudService\x12R\n" +

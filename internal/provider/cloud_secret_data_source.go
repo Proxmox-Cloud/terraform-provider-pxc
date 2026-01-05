@@ -36,6 +36,7 @@ type CloudSecretDataSource struct {
 type CloudSecretDataSourceModel struct {
 	SecretName types.String `tfsdk:"secret_name"`
 	Secret     types.String `tfsdk:"secret"`
+	Rstrip 		 types.Bool `tfsdk:"rstrip"`
 }
 
 func (d *CloudSecretDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -54,6 +55,10 @@ func (d *CloudSecretDataSource) Schema(ctx context.Context, req datasource.Schem
 			"secret": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Cattet raw secret file",
+			},
+			"rstrip": schema.BoolAttribute{
+				MarkdownDescription: "Wheter to rstrip the secret, if not specified defaults to true.",
+				Optional: true,
 			},
 		},
 	}
@@ -104,7 +109,13 @@ func (d *CloudSecretDataSource) Read(ctx context.Context, req datasource.ReadReq
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{TargetPve: d.providerModel.TargetPve.ValueString(), SecretName: data.SecretName.ValueString()})
+	rstrip := true
+
+	if !data.Rstrip.IsNull() {
+		rstrip = data.Rstrip.ValueBool()
+	}
+
+	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{TargetPve: d.providerModel.TargetPve.ValueString(), SecretName: data.SecretName.ValueString(), Rstrip: rstrip})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 		return
