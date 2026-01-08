@@ -74,8 +74,10 @@ push_rc_github:
 goreleaser:
   stage: deploy
   needs: 
-    - push_github # goreleaser needs tag on github to create release there
-    - push_rc_github
+    - job: push_github # goreleaser needs tag on github to create release there
+      optional: true
+    - job: push_rc_github
+      optional: true
   image: goreleaser/goreleaser:v2.13.1
   script:
     - apk add gpg-agent # missing in goreleaser todo: build into image
