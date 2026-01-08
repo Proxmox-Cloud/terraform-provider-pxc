@@ -1,33 +1,77 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
 # trigger a new release on gitlab
 release_tag:
   stage: build
-  image: docker.io/tobiashvmz/pve-cloud-ci:2025122115
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
   script:
-    - pwd
     - /scripts/release-tag.sh
   rules:
     - if: '$CI_COMMIT_TAG =~ /^release-[a-z]+$/'
-    - if: '$CI_COMMIT_TAG =~ /^release-all-[a-z]+$/'
   resource_group: deploy-prod
+
+rc_tag:
+  stage: build
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
+  script:
+    - /scripts/rc-tag.sh
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^rc-[a-z]+$/'
+  resource_group: deploy-prod
+
 
 # push the new tag to github so goreleaser can do its job
 push_github:
   stage: deploy
-  image: docker.io/tobiashvmz/pve-cloud-ci:2025122115
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
   script:
     - git config --global user.name "$GITLAB_USER_NAME"
     - git config --global user.email "$GITLAB_USER_EMAIL"
-
     # add github remote
     - git remote add github https://$GITHUB_TOKEN@github.com/Proxmox-Cloud/terraform-provider-pxc.git
     - git push github HEAD:master
     - git push github $CI_COMMIT_TAG
-
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
+
+push_rc_github:
+  stage: deploy
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
+  script:
+    - git config --global user.name "$GITLAB_USER_NAME"
+    - git config --global user.email "$GITLAB_USER_EMAIL"
+    # add github remote
+    - git remote add github https://$GITHUB_TOKEN@github.com/Proxmox-Cloud/terraform-provider-pxc.git
+    # no need to push the branch rc release tag is enough
+    - git push github $CI_COMMIT_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
+
+
+# pipeline trigger if the upstream releases
+py_pve_cloud_upstream:
+  stage: build
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
+  script:
+    # write the new version
+    - PESSIMISTIC_CONSTRAINT=$(/scripts/get-pessimistic-semver.sh $PY_PVE_CLOUD)
+    - sed -i "s/^py-pve-cloud>=.*$/py-pve-cloud>=${PY_PVE_CLOUD},<${PESSIMISTIC_CONSTRAINT}/" requirements.txt
+    - /scripts/upstream-push.sh "Update py-pve-cloud version to $PY_PVE_CLOUD (pessimistic)"
+  rules:
+    - if: '$PY_PVE_CLOUD != null && $PY_PVE_CLOUD != "" && $UPSTREAM_TAG_MESSAGE =~ /^release-.*/' # set by upstream only trigger on full release
+
+py_pve_cloud_rc_upstream:
+  stage: build
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
+  script:
+    # get the latest prod tag
+    - new_tag=$(/scripts/get-new-tag.sh)
+    - echo $new_tag
+    # switch to rc branch
+    - /scripts/rc-branch.sh $new_tag
+    # set rc version for py-pve-cloud-dependency
+    - sed -i "s/^py-pve-cloud.*$/py-pve-cloud==${PY_PVE_CLOUD//-/}/" requirements.txt
+    - /scripts/upstream-push.sh "Set py-pve-cloud rc version to ${PY_PVE_CLOUD//-/}" "${new_tag}-rc"
+  rules:
+    - if: '$PY_PVE_CLOUD != null && $PY_PVE_CLOUD != "" && $UPSTREAM_TAG_MESSAGE =~ /^rc-.*/' # set by upstream, trigger for rc release
 
 
 goreleaser:
@@ -43,6 +87,7 @@ goreleaser:
     - goreleaser release # rest is sourced via env vars set by ci
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
+    - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
 
 publish_pypi:
@@ -55,7 +100,7 @@ publish_pypi:
     - python3 -m twine upload dist/* -u __token__ -p $PYPI_TOKEN # skip gitlab oidc twine feature with -u and -p flags
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
-
+    - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
   
 downstream_tf_controller_module:
@@ -69,6 +114,7 @@ downstream_tf_controller_module:
     UPSTREAM_TAG_MESSAGE: $CI_COMMIT_TAG_MESSAGE # here we store the type of the release
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
+    - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
 
 downstream_tf_backup_module:
@@ -82,32 +128,7 @@ downstream_tf_backup_module:
     UPSTREAM_TAG_MESSAGE: $CI_COMMIT_TAG_MESSAGE # here we store the type of the release
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
-
-
-  # pipeline trigger if the upstream releases
-py_pve_cloud_upstream:
-  stage: build
-  image: docker.io/tobiashvmz/pve-cloud-ci:2025122115
-  script:
-    # write the new version
-    - PESSIMISTIC_CONSTRAINT=$(/scripts/get-pessimistic-semver.sh $PY_PVE_CLOUD)
-    - sed -i "s/^py-pve-cloud>=.*$/py-pve-cloud>=${PY_PVE_CLOUD},<${PESSIMISTIC_CONSTRAINT}/" requirements.txt
-    - /scripts/upstream-push.sh "Update py-pve-cloud version to $PY_PVE_CLOUD (pessimistic)"
-  rules:
-    - if: ( $PY_PVE_CLOUD != null || $PY_PVE_CLOUD =~ /^./ ) # set by upstream
-
-
-trigger_upstream_release_tag:
-  stage: deploy
-  image: alpine/curl:8.14.1
-  script:
-    - |
-      curl --request POST \
-        --form "token=${CI_JOB_TOKEN}" \
-        --form "ref=${UPSTREAM_TAG_MESSAGE}" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/trigger/pipeline"
-  rules:
-    - if: $UPSTREAM_TAG_MESSAGE =~ /-all-/ && ( $PY_PVE_CLOUD != null || $PY_PVE_CLOUD =~ /^./ ) # set by upstream
+    - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
 
 format_source:
@@ -116,7 +137,6 @@ format_source:
   script:
     - git config --global user.name "$GITLAB_USER_NAME"
     - git config --global user.email "$GITLAB_USER_EMAIL"
-    
     - autoflake --exclude protos --in-place --recursive .
     - black --exclude protos .
     - isort --skip protos .
@@ -132,8 +152,9 @@ format_source:
   rules:
     - if: >
         $CI_COMMIT_TAG !~ /^\d+\.\d+\.\d+$/ &&
+        $CI_COMMIT_TAG !~ /^\d+\.\d+\.\d+-rc\d+$/ &&
         $CI_COMMIT_TAG !~ /^release-[a-z]+$/ &&
-        $CI_COMMIT_TAG !~ /^release-all-[a-z]+$/ &&
+        $CI_COMMIT_TAG !~ /^rc-[a-z]+$/ &&
         $CI_PIPELINE_SOURCE == 'push'
       when: on_success
     - when: never
