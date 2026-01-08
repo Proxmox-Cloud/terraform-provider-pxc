@@ -1,3 +1,30 @@
+# pipeline trigger if the upstream releases
+py_pve_cloud_upstream:
+  stage: build
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
+  script:
+    # write the new version
+    - PESSIMISTIC_CONSTRAINT=$(/scripts/get-pessimistic-semver.sh $PY_PVE_CLOUD)
+    - sed -i "s/^py-pve-cloud>=.*$/py-pve-cloud>=${PY_PVE_CLOUD},<${PESSIMISTIC_CONSTRAINT}/" requirements.txt
+    - /scripts/upstream-push.sh "Update py-pve-cloud version to $PY_PVE_CLOUD (pessimistic)"
+  rules:
+    - if: '$PY_PVE_CLOUD != null && $PY_PVE_CLOUD != "" && $UPSTREAM_TAG_MESSAGE =~ /^release-.*/' # set by upstream only trigger on full release
+
+py_pve_cloud_rc_upstream:
+  stage: build
+  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
+  script:
+    # get the latest prod tag
+    - new_tag=$(/scripts/get-new-tag.sh)
+    - echo $new_tag
+    # switch to rc branch
+    - /scripts/rc-branch.sh $new_tag
+    # set rc version for py-pve-cloud-dependency
+    - sed -i "s/^py-pve-cloud.*$/py-pve-cloud==${PY_PVE_CLOUD//-/}/" requirements.txt
+    - /scripts/upstream-push.sh "Set py-pve-cloud rc version to ${PY_PVE_CLOUD//-/}" "${new_tag}-rc"
+  rules:
+    - if: '$PY_PVE_CLOUD != null && $PY_PVE_CLOUD != "" && $UPSTREAM_TAG_MESSAGE =~ /^rc-.*/' # set by upstream, trigger for rc release
+
 # trigger a new release on gitlab
 release_tag:
   stage: build
@@ -16,7 +43,6 @@ rc_tag:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^rc-[a-z]+$/'
   resource_group: deploy-prod
-
 
 # push the new tag to github so goreleaser can do its job
 push_github:
@@ -45,35 +71,6 @@ push_rc_github:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
-
-# pipeline trigger if the upstream releases
-py_pve_cloud_upstream:
-  stage: build
-  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
-  script:
-    # write the new version
-    - PESSIMISTIC_CONSTRAINT=$(/scripts/get-pessimistic-semver.sh $PY_PVE_CLOUD)
-    - sed -i "s/^py-pve-cloud>=.*$/py-pve-cloud>=${PY_PVE_CLOUD},<${PESSIMISTIC_CONSTRAINT}/" requirements.txt
-    - /scripts/upstream-push.sh "Update py-pve-cloud version to $PY_PVE_CLOUD (pessimistic)"
-  rules:
-    - if: '$PY_PVE_CLOUD != null && $PY_PVE_CLOUD != "" && $UPSTREAM_TAG_MESSAGE =~ /^release-.*/' # set by upstream only trigger on full release
-
-py_pve_cloud_rc_upstream:
-  stage: build
-  image: docker.io/tobiashvmz/pve-cloud-ci:202601081028
-  script:
-    # get the latest prod tag
-    - new_tag=$(/scripts/get-new-tag.sh)
-    - echo $new_tag
-    # switch to rc branch
-    - /scripts/rc-branch.sh $new_tag
-    # set rc version for py-pve-cloud-dependency
-    - sed -i "s/^py-pve-cloud.*$/py-pve-cloud==${PY_PVE_CLOUD//-/}/" requirements.txt
-    - /scripts/upstream-push.sh "Set py-pve-cloud rc version to ${PY_PVE_CLOUD//-/}" "${new_tag}-rc"
-  rules:
-    - if: '$PY_PVE_CLOUD != null && $PY_PVE_CLOUD != "" && $UPSTREAM_TAG_MESSAGE =~ /^rc-.*/' # set by upstream, trigger for rc release
-
-
 goreleaser:
   stage: deploy
   needs: 
@@ -89,7 +86,6 @@ goreleaser:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
-
 publish_pypi:
   stage: deploy
   image:
@@ -102,7 +98,6 @@ publish_pypi:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
-  
 downstream_tf_controller_module:
   stage: deploy
   needs:
@@ -116,7 +111,6 @@ downstream_tf_controller_module:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
 
-
 downstream_tf_backup_module:
   stage: deploy
   needs:
@@ -129,7 +123,6 @@ downstream_tf_backup_module:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
-
 
 format_source:
   stage: build
