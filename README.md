@@ -45,3 +45,7 @@ go mod tidy
 ```
 
 Then commit the changes to `go.mod` and `go.sum`.
+
+## Generate docs
+
+`make generate`

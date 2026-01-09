@@ -3,12 +3,12 @@
 page_title: "pxc_ceph_access Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches the cluster vars of the associated target pve
+  Fetches ceph conf and the admin keyring of the associated target pve
 ---
 
 # pxc_ceph_access (Data Source)
 
-Fetches the cluster vars of the associated target pve
+Fetches ceph conf and the admin keyring of the associated target pve
 
 
 

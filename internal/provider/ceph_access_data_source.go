@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package provider
 
 import (
@@ -46,7 +43,7 @@ func (d *CephAccessDataSource) Metadata(ctx context.Context, req datasource.Meta
 
 func (d *CephAccessDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetches the cluster vars of the associated target pve",
+		MarkdownDescription: "Fetches ceph conf and the admin keyring of the associated target pve",
 
 		Attributes: map[string]schema.Attribute{
 			"ceph_conf": schema.StringAttribute{

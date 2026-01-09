@@ -19,6 +19,10 @@ Fetches secret from proxmox cloud (/etc/pve/cloud/secrets)
 
 - `secret_name` (String) Secret file name to fetch
 
+### Optional
+
+- `rstrip` (Boolean) Wheter to rstrip the secret, if not specified defaults to true.
+
 ### Read-Only
 
 - `secret` (String) Cattet raw secret file
