@@ -78,7 +78,7 @@ goreleaser:
       optional: true
     - job: push_rc_github
       optional: true
-  image: goreleaser/goreleaser:v2.13.1
+  image: goreleaser/goreleaser:v2.13.2
   script:
     - apk add gpg-agent # missing in goreleaser todo: build into image
     - echo "$GPG_EXPORTED_KEY_B64" | base64 -d > gpg-key.asc
