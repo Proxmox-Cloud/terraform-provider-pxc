@@ -3,12 +3,12 @@
 page_title: "pxc_cluster_vars Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches the cluster vars of the associated target pve
+  Fetches the cluster vars, set by ansible, of the associated target_pve. Check out the cloud inventory schema https://proxmox-cloud.github.io/pve_cloud/schemas/pve_cloud_inv_schema/ for available variables.
 ---
 
 # pxc_cluster_vars (Data Source)
 
-Fetches the cluster vars of the associated target pve
+Fetches the cluster vars, set by ansible, of the associated target_pve. Check out the [cloud inventory schema](https://proxmox-cloud.github.io/pve_cloud/schemas/pve_cloud_inv_schema/) for available variables.
 
 
 
@@ -17,4 +17,4 @@ Fetches the cluster vars of the associated target pve
 
 ### Read-Only
 
-- `vars` (String) Cluster vars as yaml string
+- `vars` (String) Cluster vars as yaml string, use `yamldecode()` to parse

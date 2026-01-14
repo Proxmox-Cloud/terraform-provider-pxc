@@ -3,12 +3,12 @@
 page_title: "pxc_pve_host Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches a single online ipv4 host address of a proxmox host in target pve
+  Fetches a single online ipv4 host address of a proxmox host in target_pve. This can be used for apps that need to connect to a proxmox host directly.
 ---
 
 # pxc_pve_host (Data Source)
 
-Fetches a single online ipv4 host address of a proxmox host in target pve
+Fetches a single online ipv4 host address of a proxmox host in target_pve. This can be used for apps that need to connect to a proxmox host directly.
 
 
 

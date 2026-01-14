@@ -3,12 +3,12 @@
 page_title: "pxc_ceph_access Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches ceph conf and the admin keyring of the associated target pve
+  Fetches ceph conf and the admin keyring of the associated target_pve from the providers initialization.
 ---
 
 # pxc_ceph_access (Data Source)
 
-Fetches ceph conf and the admin keyring of the associated target pve
+Fetches ceph conf and the admin keyring of the associated target_pve from the providers initialization.
 
 
 

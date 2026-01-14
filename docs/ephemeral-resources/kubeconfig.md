@@ -3,12 +3,12 @@
 page_title: "pxc_kubeconfig Ephemeral Resource - pxc"
 subcategory: ""
 description: |-
-  Get the admin kubeconfig for authenticating k8s related providers.
+  Get the admin kubeconfig for authenticating k8s related providers. Target kubernetes cluster is automatically inferred from the provider initialization.
 ---
 
 # pxc_kubeconfig (Ephemeral Resource)
 
-Get the admin kubeconfig for authenticating k8s related providers.
+Get the admin kubeconfig for authenticating k8s related providers. Target kubernetes cluster is automatically inferred from the provider initialization.
 
 
 

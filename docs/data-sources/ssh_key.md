@@ -2,7 +2,7 @@
 page_title: "pxc_ssh_key Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetch different ssh keys from proxmox cloud based on type
+  Fetch different ssh keys from proxmox cloud based on key type.
 ---
 
 # pxc_ssh_key (Data Source)
@@ -23,4 +23,4 @@ Available key types are:
 
 ### Read-Only
 
-- `key` (String) The catted key
+- `key` (String) The raw key

@@ -3,12 +3,12 @@
 page_title: "pxc_pve_inventory Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches the pve inventory of the associated target pves cloud domain
+  Fetches the full pve inventory of the associated target_pve cloud domain. This will contain all proxmox hosts grouped by their cluster membership in ansible yaml inventory format.
 ---
 
 # pxc_pve_inventory (Data Source)
 
-Fetches the pve inventory of the associated target pves cloud domain
+Fetches the full pve inventory of the associated target_pve cloud domain. This will contain all proxmox hosts grouped by their cluster membership in ansible yaml inventory format.
 
 
 

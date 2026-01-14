@@ -3,12 +3,12 @@
 page_title: "pxc_cloud_secret Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches secret from proxmox cloud (/etc/pve/cloud/secrets)
+  Fetches secret from the proxmox cloud secret directory (/etc/pve/cloud/secrets).
 ---
 
 # pxc_cloud_secret (Data Source)
 
-Fetches secret from proxmox cloud (/etc/pve/cloud/secrets)
+Fetches secret from the proxmox cloud secret directory (/etc/pve/cloud/secrets).
 
 
 
@@ -21,7 +21,7 @@ Fetches secret from proxmox cloud (/etc/pve/cloud/secrets)
 
 ### Optional
 
-- `rstrip` (Boolean) Wheter to rstrip the secret, if not specified defaults to true.
+- `rstrip` (Boolean) Wheter to rstrip the secret, if not specified defaults to true
 
 ### Read-Only
 
