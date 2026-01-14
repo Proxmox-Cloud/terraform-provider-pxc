@@ -40,7 +40,7 @@ func (d *PveInventoryDataSource) Metadata(ctx context.Context, req datasource.Me
 
 func (d *PveInventoryDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetches the pve inventory of the associated target pves cloud domain",
+		MarkdownDescription: "Fetches the full pve inventory of the associated target_pve cloud domain. This will contain all proxmox hosts grouped by their cluster membership in ansible yaml inventory format.",
 
 		Attributes: map[string]schema.Attribute{
 			"inventory": schema.StringAttribute{

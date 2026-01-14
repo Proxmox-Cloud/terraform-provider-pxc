@@ -39,12 +39,12 @@ func (d *ClusterVarsDataSource) Metadata(ctx context.Context, req datasource.Met
 
 func (d *ClusterVarsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetches the cluster vars of the associated target pve",
+		MarkdownDescription: "Fetches the cluster vars, set by ansible, of the associated target_pve. Check out the [cloud inventory schema](https://proxmox-cloud.github.io/pve_cloud/schemas/pve_cloud_inv_schema/) for available variables.",
 
 		Attributes: map[string]schema.Attribute{
 			"vars": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Cluster vars as yaml string",
+				MarkdownDescription: "Cluster vars as yaml string, use `yamldecode()` to parse",
 			},
 		},
 	}

@@ -39,7 +39,7 @@ func (d *ProxmoxHostDataSource) Metadata(ctx context.Context, req datasource.Met
 
 func (d *ProxmoxHostDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetches a single online ipv4 host address of a proxmox host in target pve",
+		MarkdownDescription: "Fetches a single online ipv4 host address of a proxmox host in target_pve. This can be used for apps that need to connect to a proxmox host directly.",
 
 		Attributes: map[string]schema.Attribute{
 			"pve_host": schema.StringAttribute{

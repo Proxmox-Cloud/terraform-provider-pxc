@@ -42,7 +42,7 @@ func (d *CloudSecretDataSource) Metadata(ctx context.Context, req datasource.Met
 
 func (d *CloudSecretDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetches secret from proxmox cloud (/etc/pve/cloud/secrets)",
+		MarkdownDescription: "Fetches secret from the proxmox cloud secret directory (/etc/pve/cloud/secrets).",
 
 		Attributes: map[string]schema.Attribute{
 			"secret_name": schema.StringAttribute{
@@ -54,7 +54,7 @@ func (d *CloudSecretDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: "Cattet raw secret file",
 			},
 			"rstrip": schema.BoolAttribute{
-				MarkdownDescription: "Wheter to rstrip the secret, if not specified defaults to true.",
+				MarkdownDescription: "Wheter to rstrip the secret, if not specified defaults to true",
 				Optional: true,
 			},
 		},

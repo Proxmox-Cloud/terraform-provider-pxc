@@ -42,7 +42,7 @@ func (d *SshKeyDataSource) Metadata(ctx context.Context, req datasource.Metadata
 
 func (d *SshKeyDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetch different ssh keys from proxmox cloud based on type",
+		MarkdownDescription: "Fetch different ssh keys from proxmox cloud based on key type.",
 
 		Attributes: map[string]schema.Attribute{
 			"key_type": schema.StringAttribute{
@@ -54,7 +54,7 @@ func (d *SshKeyDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"key": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The catted key",
+				MarkdownDescription: "The raw key",
 			},
 		},
 	}

@@ -40,7 +40,7 @@ func (r *KubeconfigEphemeralResource) Metadata(_ context.Context, req ephemeral.
 
 func (r *KubeconfigEphemeralResource) Schema(ctx context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Get the admin kubeconfig for authenticating k8s related providers.",
+		MarkdownDescription: "Get the admin kubeconfig for authenticating k8s related providers. Target kubernetes cluster is automatically inferred from the provider initialization.",
 
 		Attributes: map[string]schema.Attribute{
 			"config": schema.StringAttribute{

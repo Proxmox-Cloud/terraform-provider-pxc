@@ -1,12 +1,12 @@
 ---
-page_title: "pxc Provider"
+page_title: "PXC Provider"
 description: |-
   Terraform provider for integrating with proxmox cloud.
 ---
 
-# pxc Provider
+# PXC Provider
 
-The terraform provider integrates proxmox clusters running proxmox cloud into easy to access datasources and secrets.
+The terraform provider integrates proxmox clusters running [https://github.com/Proxmox-Cloud](https://github.com/Proxmox-Cloud) into easy to access datasources and secrets.
 
 Under the hood it uses a python rpc server that serves functionality from [py-pve-cloud](https://github.com/Proxmox-Cloud/py-pve-cloud).
 
