@@ -78,9 +78,8 @@ goreleaser:
       optional: true
     - job: push_rc_github
       optional: true
-  image: goreleaser/goreleaser:v2.13.3
+  image: tobiashvmz/pve-cloud-goci:202601161359
   script:
-    - apk add gpg-agent # missing in goreleaser todo: build into image
     - echo "$GPG_EXPORTED_KEY_B64" | base64 -d > gpg-key.asc
     - gpg --batch --import gpg-key.asc
     - rm gpg-key.asc # remove the key, goreleaser needs clean state
@@ -126,6 +125,30 @@ downstream_tf_backup_module:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+$/' # semver
     - if: '$CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+-rc\d+$/' # release candidate
+
+generate_docs:
+  stage: build
+  image: tobiashvmz/pve-cloud-goci:202601161359
+  script:
+    - make generate
+    - |
+      if ! git diff --quiet; then
+        git add .
+        git commit -m "Generate terraform docs"
+        git push origin HEAD:$CI_COMMIT_REF_NAME
+      else
+        echo "No docs to generate"
+      fi
+  rules:
+    - if: >
+        $CI_COMMIT_TAG !~ /^\d+\.\d+\.\d+$/ &&
+        $CI_COMMIT_TAG !~ /^\d+\.\d+\.\d+-rc\d+$/ &&
+        $CI_COMMIT_TAG !~ /^release-[a-z]+$/ &&
+        $CI_COMMIT_TAG !~ /^rc-[a-z]+$/ &&
+        $CI_PIPELINE_SOURCE == 'push'
+      when: on_success
+    - when: never
+  resource_group: deploy-prod
 
 format_source:
   stage: build
