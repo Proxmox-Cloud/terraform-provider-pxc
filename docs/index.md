@@ -6,11 +6,11 @@ description: |-
 
 # PXC Provider
 
-The terraform provider integrates proxmox clusters running [https://github.com/Proxmox-Cloud](https://github.com/Proxmox-Cloud) into easy to access datasources and secrets.
+The terraform provider integrates proxmox clusters running [Proxmox Cloud](https://github.com/Proxmox-Cloud) into easy to access datasources and secrets.
 
 Under the hood it uses a python rpc server that serves functionality from [py-pve-cloud](https://github.com/Proxmox-Cloud/py-pve-cloud).
 
-It is meant to be used with pxc kubespray clusters.
+It is meant to be used with proxmox cloud kubespray clusters.
 
 ## Example Usage
 
