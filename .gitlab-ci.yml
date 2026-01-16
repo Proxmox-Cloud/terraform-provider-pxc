@@ -130,6 +130,8 @@ generate_docs:
   stage: build
   image: tobiashvmz/pve-cloud-goci:202601161359
   script:
+    - git config --global user.name "$GITLAB_USER_NAME"
+    - git config --global user.email "$GITLAB_USER_EMAIL"
     - make generate
     - |
       if ! git diff --quiet; then
