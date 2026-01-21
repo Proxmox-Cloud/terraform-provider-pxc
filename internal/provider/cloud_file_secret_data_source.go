@@ -18,46 +18,50 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ datasource.DataSource = &CloudSecretDataSource{}
+var _ datasource.DataSource = &CloudFileSecretDataSource{}
 
-func NewCloudSecretDataSource() datasource.DataSource {
-	return &CloudSecretDataSource{}
+func NewCloudFileSecretDataSource() datasource.DataSource {
+	return &CloudFileSecretDataSource{}
 }
 
-// CloudSecretDataSource defines the data source implementation.
-type CloudSecretDataSource struct {
+// CloudFileSecretDataSource defines the data source implementation.
+type CloudFileSecretDataSource struct {
 	kubesprayInventory KubesprayInventory
 }
 
-// CloudSecretDataSourceModel describes the data source data model.
-type CloudSecretDataSourceModel struct {
+// CloudFileSecretDataSourceModel describes the data source data model.
+type CloudFileSecretDataSourceModel struct {
 	SecretName types.String `tfsdk:"secret_name"`
-	SecretData types.String `tfsdk:"secret_data"`
+	Secret     types.String `tfsdk:"secret"`
+	Rstrip     types.Bool   `tfsdk:"rstrip"`
 }
 
-func (d *CloudSecretDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_cloud_secret"
+func (d *CloudFileSecretDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_cloud_file_secret"
 }
 
-func (d *CloudSecretDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *CloudFileSecretDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetches a proxmox cloud secret, scoped by target_pve, from the postgres px_cloud_secret table.",
+		MarkdownDescription: "Fetches a file secret from the proxmox cloud secret directory (/etc/pve/cloud/secrets).",
 
 		Attributes: map[string]schema.Attribute{
 			"secret_name": schema.StringAttribute{
-				MarkdownDescription: "Secret name to fetch.",
+				MarkdownDescription: "Secret file name to fetch.",
 				Required:            true,
 			},
-			// todo: figure out terraforms absurd type system to avoid jsonencode and decode calls to pass / receive dynamic values
-			"secret_data": schema.StringAttribute{
+			"secret": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Secret data as json string, parsed from jsonb inside postgres database. Use jsondecode to access it as dynamic terraform object.",
+				MarkdownDescription: "Cat output of raw secret file.",
+			},
+			"rstrip": schema.BoolAttribute{
+				MarkdownDescription: "Wheter to rstrip the secret, removing whitespace and newlines, if not specified defaults to true.",
+				Optional:            true,
 			},
 		},
 	}
 }
 
-func (d *CloudSecretDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *CloudFileSecretDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -76,8 +80,8 @@ func (d *CloudSecretDataSource) Configure(ctx context.Context, req datasource.Co
 	d.kubesprayInventory = kubesprayInv
 }
 
-func (d *CloudSecretDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data CloudSecretDataSourceModel
+func (d *CloudFileSecretDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data CloudFileSecretDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -101,13 +105,20 @@ func (d *CloudSecretDataSource) Read(ctx context.Context, req datasource.ReadReq
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{TargetPve: d.kubesprayInventory.TargetPve, SecretName: data.SecretName.ValueString()})
+	// perform the request
+	rstrip := true
+
+	if !data.Rstrip.IsNull() {
+		rstrip = data.Rstrip.ValueBool()
+	}
+
+	cresp, err := client.GetCloudFileSecret(ctx, &pb.GetCloudFileSecretRequest{TargetPve: d.kubesprayInventory.TargetPve, SecretName: data.SecretName.ValueString(), Rstrip: rstrip})
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get cloud secret, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get cloud file secret, got error: %s", err))
 		return
 	}
 
-	data.SecretData = types.StringValue(cresp.Secret)
+	data.Secret = types.StringValue(cresp.Secret)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

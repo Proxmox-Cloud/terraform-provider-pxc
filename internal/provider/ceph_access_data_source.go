@@ -28,7 +28,7 @@ func NewCephAccessDataSource() datasource.DataSource {
 
 // CephAccessDataSource defines the data source implementation.
 type CephAccessDataSource struct {
-	providerModel PxcProviderModel
+	kubesprayInventory KubesprayInventory
 }
 
 // CephAccessDataSourceModel describes the data source data model.
@@ -64,17 +64,17 @@ func (d *CephAccessDataSource) Configure(ctx context.Context, req datasource.Con
 		return
 	}
 
-	providerModel, ok := req.ProviderData.(PxcProviderModel)
+	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *PxcProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	d.providerModel = providerModel
+	d.kubesprayInventory = kubesprayInv
 }
 
 func (d *CephAccessDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -93,7 +93,7 @@ func (d *CephAccessDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
 	defer conn.Close()
@@ -103,9 +103,9 @@ func (d *CephAccessDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetCephAccess(ctx, &pb.GetCephAccessRequest{TargetPve: d.providerModel.TargetPve.ValueString()})
+	cresp, err := client.GetCephAccess(ctx, &pb.GetCephAccessRequest{TargetPve: d.kubesprayInventory.TargetPve})
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable get ceph access files, got error: %s", err))
 		return
 	}
 

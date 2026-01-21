@@ -7,12 +7,19 @@ option go_package = "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/pr
 service CloudService {
   rpc GetMasterKubeconfig(GetKubeconfigRequest) returns (GetKubeconfigResponse);
   rpc GetClusterVars(GetClusterVarsRequest) returns (GetClusterVarsResponse);
+  rpc GetCloudFileSecret(GetCloudFileSecretRequest) returns (GetCloudFileSecretResponse);
+  rpc CreateCloudSecret(CreateCloudSecretRequest) returns (CreateCloudSecretResponse);
+  rpc DeleteCloudSecret(DeleteCloudSecretRequest) returns (DeleteCloudSecretResponse);
   rpc GetCloudSecret(GetCloudSecretRequest) returns (GetCloudSecretResponse);
+  rpc GetCloudSecrets(GetCloudSecretsRequest) returns (GetCloudSecretsResponse);
   rpc GetCephAccess(GetCephAccessRequest) returns (GetCephAccessResponse);
   rpc GetSshKey(GetSshKeyRequest) returns (GetSshKeyResponse);
   rpc GetProxmoxApi(GetProxmoxApiRequest) returns (GetProxmoxApiResponse);
+  rpc CreateProxmoxApi(CreateProxmoxApiRequest) returns (CreateProxmoxApiResponse);
+  rpc DeleteProxmoxApi(DeleteProxmoxApiRequest) returns (DeleteProxmoxApiResponse);
   rpc GetProxmoxHost(GetProxmoxHostRequest) returns (GetProxmoxHostResponse);
   rpc GetPveInventory(GetPveInventoryRequest) returns (GetPveInventoryResponse);
+  rpc GetVmVarsBlake(GetVmVarsBlakeRequest) returns (GetVmVarsBlakeResponse);
 }
 
 message GetPveInventoryRequest {
@@ -40,6 +47,27 @@ message GetProxmoxApiRequest {
 
 message GetProxmoxApiResponse {
   string json_resp = 1;
+}
+
+message CreateProxmoxApiRequest {
+  string target_pve = 1;
+  string api_path = 2;
+  map<string, string> create_args = 3;
+}
+
+message CreateProxmoxApiResponse {
+  bool success = 1;
+  string err_message = 2;
+}
+
+message DeleteProxmoxApiRequest {
+  string target_pve = 1;
+  string api_path = 2;
+}
+
+message DeleteProxmoxApiResponse {
+  bool success = 1;
+  string err_message = 2;
 }
 
 message GetSshKeyRequest {
@@ -81,13 +109,61 @@ message GetClusterVarsResponse {
   string vars = 1;
 }
 
-message GetCloudSecretRequest {
+message GetCloudFileSecretRequest {
   string target_pve = 1;
   string secret_name = 2;
   bool rstrip = 3;
+}
+
+message GetCloudFileSecretResponse {
+  string secret = 1;
+}
+
+message CreateCloudSecretRequest {
+  string target_pve = 1;
+  string secret_name = 2;
+  string secret_data = 3;
+  string secret_type = 4;
+}
+
+message CreateCloudSecretResponse {
+  bool success = 1;
+  string err_message = 2;
+}
+
+message DeleteCloudSecretRequest {
+  string target_pve = 1;
+  string secret_name = 2;
+}
+
+message DeleteCloudSecretResponse {
+  bool success = 1;
+  string err_message = 2;
+}
+
+message GetCloudSecretRequest {
+  string target_pve = 1;
+  string secret_name = 2;
 }
 
 message GetCloudSecretResponse {
   string secret = 1;
 }
 
+message GetCloudSecretsRequest {
+  string target_pve = 1;
+  string secret_type = 2;
+}
+
+message GetCloudSecretsResponse {
+  string secrets = 1;
+}
+
+message GetVmVarsBlakeRequest {
+  string target_pve = 1;
+  repeated string blake_ids = 2;
+}
+
+message GetVmVarsBlakeResponse {
+  map<string, string> blake_id_vars = 1;
+}

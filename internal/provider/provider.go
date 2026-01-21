@@ -3,6 +3,14 @@ package provider
 import (
 	"context"
 
+	"fmt"
+	"os"
+	"os/exec"
+	"strconv"
+	"time"
+
+	"gopkg.in/yaml.v3"
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -12,14 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"fmt"
-	"os"
-	"os/exec"
-	"strconv"
-	"time"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 )
 
 // Ensure PxcProvider satisfies various provider interfaces.
@@ -34,14 +36,13 @@ type PxcProvider struct {
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
-	exitCh chan bool
+	exitCh  chan bool
 }
 
 // PxcProviderModel describes the provider data model.
 type PxcProviderModel struct {
-	TargetPve    types.String `tfsdk:"target_pve"`
-	K8sStackName types.String `tfsdk:"k8s_stack_name"`
-	exitCh chan bool
+	InventoryPath types.String `tfsdk:"kubespray_inv"`
+	exitCh       chan bool
 }
 
 func (p *PxcProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -52,17 +53,20 @@ func (p *PxcProvider) Metadata(ctx context.Context, req provider.MetadataRequest
 func (p *PxcProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"target_pve": schema.StringAttribute{
-				MarkdownDescription: "Target proxmox cloud environment (e.g. your-cluster.your-cloud.domain).",
-				Required:            true,
-			},
-			"k8s_stack_name": schema.StringAttribute{
-				MarkdownDescription: "Stack name of your kubespray cluster defined in the custom inventory file.",
+			"kubespray_inv": schema.StringAttribute{
+				MarkdownDescription: "Path to your kubespray inventory yaml file.",
 				Required:            true,
 			},
 		},
 	}
+}
 
+type KubesprayInventory struct {
+	TargetPve          string               `yaml:"target_pve"`
+	StackName          string               `yaml:"stack_name"`
+	// we need these two in the controller module and will return them in cloud_self data source
+	ClusterCertEntries []interface{}   `yaml:"cluster_cert_entries"`
+	ExternalDomains    []interface{} `yaml:"external_domains"`
 }
 
 func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
@@ -74,10 +78,28 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
-	// simply pass the full model as data
-	resp.DataSourceData = data
-	resp.ResourceData = data
-	resp.EphemeralResourceData = data
+	yamlFile, err := os.ReadFile(data.InventoryPath.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Inventory File",
+			"Could not read file at "+data.InventoryPath.ValueString()+": "+err.Error(),
+		)
+		return
+	}
+	var inventory KubesprayInventory
+	err = yaml.Unmarshal(yamlFile, &inventory)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Parsing Inventory YAML",
+			"Could not unmarshal YAML: "+err.Error(),
+		)
+		return
+	}
+
+	// simply pass the inventory as data
+	resp.DataSourceData = inventory
+	resp.ResourceData = inventory
+	resp.EphemeralResourceData = inventory
 
 	// launch our python grpc server
 
@@ -114,9 +136,9 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	}
 
 	// launch routine to kill the server
-	go func(){
+	go func() {
 		<-p.exitCh // wait for exit signal
-		
+
 		cmd.Process.Kill() // kill
 
 		p.exitCh <- true // call finished
@@ -146,7 +168,7 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		defer cancel()
 
 		healthClient := pb.NewHealthClient(conn)
-		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{TargetPve: data.TargetPve.ValueString()})
+		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{TargetPve: inventory.TargetPve})
 
 		if err != nil {
 			time.Sleep(200 * time.Millisecond)
@@ -171,7 +193,11 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 }
 
 func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		NewGotifyAppResource,
+		NewCloudSecretResource,
+		NewPveGotifyTargetResource,
+	}
 }
 
 func (p *PxcProvider) EphemeralResources(ctx context.Context) []func() ephemeral.EphemeralResource {
@@ -182,13 +208,16 @@ func (p *PxcProvider) EphemeralResources(ctx context.Context) []func() ephemeral
 
 func (p *PxcProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewClusterVarsDataSource,
-		NewCloudSecretDataSource,
+		NewCloudSelfDataSource,
+		NewCloudFileSecretDataSource,
 		NewCephAccessDataSource,
 		NewSshKeyDataSource,
 		NewPveApiGetDataSource,
 		NewProxmoxHostDataSource,
 		NewPveInventoryDataSource,
+		NewCloudSecretDataSource,
+		NewCloudSecretsDataSource,
+		NewCloudVmsDataSource,
 	}
 }
 
@@ -204,7 +233,7 @@ func New(version string, exitCh chan bool) func() provider.Provider {
 	return func() provider.Provider {
 		return &PxcProvider{
 			version: version,
-			exitCh: exitCh,
+			exitCh:  exitCh,
 		}
 	}
 }

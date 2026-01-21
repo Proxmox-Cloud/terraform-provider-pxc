@@ -25,7 +25,7 @@ func NewProxmoxHostDataSource() datasource.DataSource {
 
 // ProxmoxHostDataSource defines the data source implementation.
 type ProxmoxHostDataSource struct {
-	providerModel PxcProviderModel
+	kubesprayInventory KubesprayInventory
 }
 
 // ProxmoxHostDataSourceModel describes the data source data model.
@@ -56,17 +56,17 @@ func (d *ProxmoxHostDataSource) Configure(ctx context.Context, req datasource.Co
 		return
 	}
 
-	providerModel, ok := req.ProviderData.(PxcProviderModel)
+	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *PxcProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	d.providerModel = providerModel
+	d.kubesprayInventory = kubesprayInv
 }
 
 func (d *ProxmoxHostDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -84,7 +84,7 @@ func (d *ProxmoxHostDataSource) Read(ctx context.Context, req datasource.ReadReq
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
 		return
 	}
 	defer conn.Close()
@@ -94,9 +94,9 @@ func (d *ProxmoxHostDataSource) Read(ctx context.Context, req datasource.ReadReq
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetProxmoxHost(ctx, &pb.GetProxmoxHostRequest{TargetPve: d.providerModel.TargetPve.ValueString()})
+	cresp, err := client.GetProxmoxHost(ctx, &pb.GetProxmoxHostRequest{TargetPve: d.kubesprayInventory.TargetPve})
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get proxmox host, got error: %s", err))
 		return
 	}
 

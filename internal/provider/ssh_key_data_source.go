@@ -27,7 +27,7 @@ func NewSshKeyDataSource() datasource.DataSource {
 
 // SshKeyDataSource defines the data source implementation.
 type SshKeyDataSource struct {
-	providerModel PxcProviderModel
+	kubesprayInventory KubesprayInventory
 }
 
 // SshKeyDataSourceModel describes the data source data model.
@@ -66,17 +66,17 @@ func (d *SshKeyDataSource) Configure(ctx context.Context, req datasource.Configu
 		return
 	}
 
-	providerModel, ok := req.ProviderData.(PxcProviderModel)
+	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *PxcProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	d.providerModel = providerModel
+	d.kubesprayInventory = kubesprayInv
 }
 
 func (d *SshKeyDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -101,7 +101,7 @@ func (d *SshKeyDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
 		return
 	}
 	defer conn.Close()
@@ -111,9 +111,9 @@ func (d *SshKeyDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetSshKey(ctx, &pb.GetSshKeyRequest{TargetPve: d.providerModel.TargetPve.ValueString(), KeyType: pb.GetSshKeyRequest_KeyType(keyTypeInt)})
+	cresp, err := client.GetSshKey(ctx, &pb.GetSshKeyRequest{TargetPve: d.kubesprayInventory.TargetPve, KeyType: pb.GetSshKeyRequest_KeyType(keyTypeInt)})
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get ssh key, got error: %s", err))
 		return
 	}
 

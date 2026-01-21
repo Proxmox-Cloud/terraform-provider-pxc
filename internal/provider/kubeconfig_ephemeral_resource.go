@@ -26,7 +26,7 @@ func NewKubeconfigEphemeralResource() ephemeral.EphemeralResource {
 
 // KubeconfigEphemeralResource defines the ephemeral resource implementation.
 type KubeconfigEphemeralResource struct {
-	providerModel PxcProviderModel
+	kubesprayInventory KubesprayInventory
 }
 
 // KubeconfigEphemeralResourceModel describes the ephemeral resource data model.
@@ -59,17 +59,17 @@ func (r *KubeconfigEphemeralResource) Configure(ctx context.Context, req ephemer
 		return
 	}
 
-	providerModel, ok := req.ProviderData.(PxcProviderModel)
+	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *PxcProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	r.providerModel = providerModel
+	r.kubesprayInventory = kubesprayInv
 }
 
 func (r *KubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
@@ -87,7 +87,7 @@ func (r *KubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral.Op
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
 		return
 	}
 	defer conn.Close()
@@ -97,9 +97,9 @@ func (r *KubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral.Op
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetMasterKubeconfig(ctx, &pb.GetKubeconfigRequest{TargetPve: r.providerModel.TargetPve.ValueString(), StackName: r.providerModel.K8sStackName.ValueString()})
+	cresp, err := client.GetMasterKubeconfig(ctx, &pb.GetKubeconfigRequest{TargetPve: r.kubesprayInventory.TargetPve, StackName: r.kubesprayInventory.StackName})
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get kubeconfig, got error: %s", err))
 		return
 	}
 

@@ -44,10 +44,30 @@ class CloudServiceStub(object):
                 request_serializer=cloud__pb2.GetClusterVarsRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetClusterVarsResponse.FromString,
                 _registered_method=True)
+        self.GetCloudFileSecret = channel.unary_unary(
+                '/protos.CloudService/GetCloudFileSecret',
+                request_serializer=cloud__pb2.GetCloudFileSecretRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetCloudFileSecretResponse.FromString,
+                _registered_method=True)
+        self.CreateCloudSecret = channel.unary_unary(
+                '/protos.CloudService/CreateCloudSecret',
+                request_serializer=cloud__pb2.CreateCloudSecretRequest.SerializeToString,
+                response_deserializer=cloud__pb2.CreateCloudSecretResponse.FromString,
+                _registered_method=True)
+        self.DeleteCloudSecret = channel.unary_unary(
+                '/protos.CloudService/DeleteCloudSecret',
+                request_serializer=cloud__pb2.DeleteCloudSecretRequest.SerializeToString,
+                response_deserializer=cloud__pb2.DeleteCloudSecretResponse.FromString,
+                _registered_method=True)
         self.GetCloudSecret = channel.unary_unary(
                 '/protos.CloudService/GetCloudSecret',
                 request_serializer=cloud__pb2.GetCloudSecretRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetCloudSecretResponse.FromString,
+                _registered_method=True)
+        self.GetCloudSecrets = channel.unary_unary(
+                '/protos.CloudService/GetCloudSecrets',
+                request_serializer=cloud__pb2.GetCloudSecretsRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetCloudSecretsResponse.FromString,
                 _registered_method=True)
         self.GetCephAccess = channel.unary_unary(
                 '/protos.CloudService/GetCephAccess',
@@ -64,6 +84,16 @@ class CloudServiceStub(object):
                 request_serializer=cloud__pb2.GetProxmoxApiRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetProxmoxApiResponse.FromString,
                 _registered_method=True)
+        self.CreateProxmoxApi = channel.unary_unary(
+                '/protos.CloudService/CreateProxmoxApi',
+                request_serializer=cloud__pb2.CreateProxmoxApiRequest.SerializeToString,
+                response_deserializer=cloud__pb2.CreateProxmoxApiResponse.FromString,
+                _registered_method=True)
+        self.DeleteProxmoxApi = channel.unary_unary(
+                '/protos.CloudService/DeleteProxmoxApi',
+                request_serializer=cloud__pb2.DeleteProxmoxApiRequest.SerializeToString,
+                response_deserializer=cloud__pb2.DeleteProxmoxApiResponse.FromString,
+                _registered_method=True)
         self.GetProxmoxHost = channel.unary_unary(
                 '/protos.CloudService/GetProxmoxHost',
                 request_serializer=cloud__pb2.GetProxmoxHostRequest.SerializeToString,
@@ -73,6 +103,11 @@ class CloudServiceStub(object):
                 '/protos.CloudService/GetPveInventory',
                 request_serializer=cloud__pb2.GetPveInventoryRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetPveInventoryResponse.FromString,
+                _registered_method=True)
+        self.GetVmVarsBlake = channel.unary_unary(
+                '/protos.CloudService/GetVmVarsBlake',
+                request_serializer=cloud__pb2.GetVmVarsBlakeRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetVmVarsBlakeResponse.FromString,
                 _registered_method=True)
 
 
@@ -91,7 +126,31 @@ class CloudServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetCloudFileSecret(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateCloudSecret(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteCloudSecret(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetCloudSecret(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCloudSecrets(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -115,6 +174,18 @@ class CloudServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateProxmoxApi(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteProxmoxApi(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetProxmoxHost(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -122,6 +193,12 @@ class CloudServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetPveInventory(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetVmVarsBlake(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -140,10 +217,30 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     request_deserializer=cloud__pb2.GetClusterVarsRequest.FromString,
                     response_serializer=cloud__pb2.GetClusterVarsResponse.SerializeToString,
             ),
+            'GetCloudFileSecret': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCloudFileSecret,
+                    request_deserializer=cloud__pb2.GetCloudFileSecretRequest.FromString,
+                    response_serializer=cloud__pb2.GetCloudFileSecretResponse.SerializeToString,
+            ),
+            'CreateCloudSecret': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateCloudSecret,
+                    request_deserializer=cloud__pb2.CreateCloudSecretRequest.FromString,
+                    response_serializer=cloud__pb2.CreateCloudSecretResponse.SerializeToString,
+            ),
+            'DeleteCloudSecret': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteCloudSecret,
+                    request_deserializer=cloud__pb2.DeleteCloudSecretRequest.FromString,
+                    response_serializer=cloud__pb2.DeleteCloudSecretResponse.SerializeToString,
+            ),
             'GetCloudSecret': grpc.unary_unary_rpc_method_handler(
                     servicer.GetCloudSecret,
                     request_deserializer=cloud__pb2.GetCloudSecretRequest.FromString,
                     response_serializer=cloud__pb2.GetCloudSecretResponse.SerializeToString,
+            ),
+            'GetCloudSecrets': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCloudSecrets,
+                    request_deserializer=cloud__pb2.GetCloudSecretsRequest.FromString,
+                    response_serializer=cloud__pb2.GetCloudSecretsResponse.SerializeToString,
             ),
             'GetCephAccess': grpc.unary_unary_rpc_method_handler(
                     servicer.GetCephAccess,
@@ -160,6 +257,16 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     request_deserializer=cloud__pb2.GetProxmoxApiRequest.FromString,
                     response_serializer=cloud__pb2.GetProxmoxApiResponse.SerializeToString,
             ),
+            'CreateProxmoxApi': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateProxmoxApi,
+                    request_deserializer=cloud__pb2.CreateProxmoxApiRequest.FromString,
+                    response_serializer=cloud__pb2.CreateProxmoxApiResponse.SerializeToString,
+            ),
+            'DeleteProxmoxApi': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteProxmoxApi,
+                    request_deserializer=cloud__pb2.DeleteProxmoxApiRequest.FromString,
+                    response_serializer=cloud__pb2.DeleteProxmoxApiResponse.SerializeToString,
+            ),
             'GetProxmoxHost': grpc.unary_unary_rpc_method_handler(
                     servicer.GetProxmoxHost,
                     request_deserializer=cloud__pb2.GetProxmoxHostRequest.FromString,
@@ -169,6 +276,11 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     servicer.GetPveInventory,
                     request_deserializer=cloud__pb2.GetPveInventoryRequest.FromString,
                     response_serializer=cloud__pb2.GetPveInventoryResponse.SerializeToString,
+            ),
+            'GetVmVarsBlake': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetVmVarsBlake,
+                    request_deserializer=cloud__pb2.GetVmVarsBlakeRequest.FromString,
+                    response_serializer=cloud__pb2.GetVmVarsBlakeResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -236,6 +348,87 @@ class CloudService(object):
             _registered_method=True)
 
     @staticmethod
+    def GetCloudFileSecret(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetCloudFileSecret',
+            cloud__pb2.GetCloudFileSecretRequest.SerializeToString,
+            cloud__pb2.GetCloudFileSecretResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateCloudSecret(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/CreateCloudSecret',
+            cloud__pb2.CreateCloudSecretRequest.SerializeToString,
+            cloud__pb2.CreateCloudSecretResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteCloudSecret(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/DeleteCloudSecret',
+            cloud__pb2.DeleteCloudSecretRequest.SerializeToString,
+            cloud__pb2.DeleteCloudSecretResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def GetCloudSecret(request,
             target,
             options=(),
@@ -252,6 +445,33 @@ class CloudService(object):
             '/protos.CloudService/GetCloudSecret',
             cloud__pb2.GetCloudSecretRequest.SerializeToString,
             cloud__pb2.GetCloudSecretResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCloudSecrets(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetCloudSecrets',
+            cloud__pb2.GetCloudSecretsRequest.SerializeToString,
+            cloud__pb2.GetCloudSecretsResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -344,6 +564,60 @@ class CloudService(object):
             _registered_method=True)
 
     @staticmethod
+    def CreateProxmoxApi(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/CreateProxmoxApi',
+            cloud__pb2.CreateProxmoxApiRequest.SerializeToString,
+            cloud__pb2.CreateProxmoxApiResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteProxmoxApi(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/DeleteProxmoxApi',
+            cloud__pb2.DeleteProxmoxApiRequest.SerializeToString,
+            cloud__pb2.DeleteProxmoxApiResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def GetProxmoxHost(request,
             target,
             options=(),
@@ -387,6 +661,33 @@ class CloudService(object):
             '/protos.CloudService/GetPveInventory',
             cloud__pb2.GetPveInventoryRequest.SerializeToString,
             cloud__pb2.GetPveInventoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetVmVarsBlake(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetVmVarsBlake',
+            cloud__pb2.GetVmVarsBlakeRequest.SerializeToString,
+            cloud__pb2.GetVmVarsBlakeResponse.FromString,
             options,
             channel_credentials,
             insecure,

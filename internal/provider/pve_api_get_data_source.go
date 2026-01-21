@@ -25,15 +25,14 @@ func NewPveApiGetDataSource() datasource.DataSource {
 
 // PveApiGetDataSource defines the data source implementation.
 type PveApiGetDataSource struct {
-	providerModel PxcProviderModel
+	kubesprayInventory KubesprayInventory
 }
 
 // PveApiGetDataSourceModel describes the data source data model.
 type PveApiGetDataSourceModel struct {
-	ApiPath   types.String `tfsdk:"api_path"`
-	GetArgs   types.Map    `tfsdk:"get_args"`
-	JsonResp  types.String `tfsdk:"json_resp"`
-	TargetPve types.String `tfsdk:"target_pve"`
+	ApiPath  types.String `tfsdk:"api_path"`
+	GetArgs  types.Map    `tfsdk:"get_args"`
+	JsonResp types.String `tfsdk:"json_resp"`
 }
 
 func (d *PveApiGetDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -47,14 +46,16 @@ func (d *PveApiGetDataSource) Schema(ctx context.Context, req datasource.SchemaR
 		Attributes: map[string]schema.Attribute{
 			"api_path": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Cluster vars as yaml string",
+				MarkdownDescription: "Api path that is inserted after pvesh get ...",
 			},
 			"get_args": schema.MapAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "CLI args that are inserted after the api_path",
+				Optional:            true,
 			},
 			"target_pve": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "Target proxmox cluster that is used to execute the command. Defaults to what the pxc provider was initialized with.",
 			},
 			"json_resp": schema.StringAttribute{
 				Computed:            true,
@@ -70,17 +71,17 @@ func (d *PveApiGetDataSource) Configure(ctx context.Context, req datasource.Conf
 		return
 	}
 
-	providerModel, ok := req.ProviderData.(PxcProviderModel)
+	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *PxcProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	d.providerModel = providerModel
+	d.kubesprayInventory = kubesprayInv
 }
 
 func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -98,7 +99,7 @@ func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadReque
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
 		return
 	}
 	defer conn.Close()
@@ -108,6 +109,7 @@ func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadReque
 	defer cancel()
 
 	// convert tf map to go map
+	// todo: use ElementsAs ?
 	getArgs := make(map[string]string)
 	if !data.GetArgs.IsNull() {
 		for k, v := range data.GetArgs.Elements() {
@@ -116,17 +118,10 @@ func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 	}
 
-	// user might specify other target pve than the initialized providr
-	// for cross cluster api calls
-	targetPve := d.providerModel.TargetPve.ValueString()
-	if !data.TargetPve.IsNull() {
-		targetPve = data.TargetPve.ValueString()
-	}
-
 	// perform the request
-	cresp, err := client.GetProxmoxApi(ctx, &pb.GetProxmoxApiRequest{TargetPve: targetPve, ApiPath: data.ApiPath.ValueString(), GetArgs: getArgs})
+	cresp, err := client.GetProxmoxApi(ctx, &pb.GetProxmoxApiRequest{TargetPve: d.kubesprayInventory.TargetPve, ApiPath: data.ApiPath.ValueString(), GetArgs: getArgs})
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make get api request, got error: %s", err))
 		return
 	}
 

@@ -25,7 +25,7 @@ func NewPveInventoryDataSource() datasource.DataSource {
 
 // PveInventoryDataSource defines the data source implementation.
 type PveInventoryDataSource struct {
-	providerModel PxcProviderModel
+	kubesprayInventory KubesprayInventory
 }
 
 // PveInventoryDataSourceModel describes the data source data model.
@@ -61,17 +61,17 @@ func (d *PveInventoryDataSource) Configure(ctx context.Context, req datasource.C
 		return
 	}
 
-	providerModel, ok := req.ProviderData.(PxcProviderModel)
+	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *PxcProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	d.providerModel = providerModel
+	d.kubesprayInventory = kubesprayInv
 }
 
 func (d *PveInventoryDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -89,7 +89,7 @@ func (d *PveInventoryDataSource) Read(ctx context.Context, req datasource.ReadRe
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
 		return
 	}
 	defer conn.Close()
@@ -99,9 +99,9 @@ func (d *PveInventoryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetPveInventory(ctx, &pb.GetPveInventoryRequest{TargetPve: d.providerModel.TargetPve.ValueString()})
+	cresp, err := client.GetPveInventory(ctx, &pb.GetPveInventoryRequest{TargetPve: d.kubesprayInventory.TargetPve})
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get pve inventory, got error: %s", err))
 		return
 	}
 
