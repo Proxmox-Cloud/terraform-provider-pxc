@@ -3,12 +3,12 @@
 page_title: "pxc_cloud_secret Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches secret from the proxmox cloud secret directory (/etc/pve/cloud/secrets).
+  Fetches a proxmox cloud secret, scoped by target_pve, from the postgres px_cloud_secret table.
 ---
 
 # pxc_cloud_secret (Data Source)
 
-Fetches secret from the proxmox cloud secret directory (/etc/pve/cloud/secrets).
+Fetches a proxmox cloud secret, scoped by target_pve, from the postgres px_cloud_secret table.
 
 
 
@@ -17,12 +17,8 @@ Fetches secret from the proxmox cloud secret directory (/etc/pve/cloud/secrets).
 
 ### Required
 
-- `secret_name` (String) Secret file name to fetch
-
-### Optional
-
-- `rstrip` (Boolean) Wheter to rstrip the secret, if not specified defaults to true
+- `secret_name` (String) Secret name to fetch.
 
 ### Read-Only
 
-- `secret` (String) Cattet raw secret file
+- `secret_data` (String) Secret data as json string, parsed from jsonb inside postgres database. Use jsondecode to access it as dynamic terraform object.

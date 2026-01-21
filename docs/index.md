@@ -30,5 +30,4 @@ provider "pxc" {
 
 ### Required
 
-- `k8s_stack_name` (String) Stack name of your kubespray cluster defined in the custom inventory file.
-- `target_pve` (String) Target proxmox cloud environment (e.g. your-cluster.your-cloud.domain).
+- `kubespray_inv` (String) Path to your kubespray inventory yaml file.

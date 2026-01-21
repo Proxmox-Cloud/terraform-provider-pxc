@@ -17,12 +17,12 @@ Makes a proxmox api get request via pvesh cli tool
 
 ### Required
 
-- `api_path` (String) Cluster vars as yaml string
+- `api_path` (String) Api path that is inserted after pvesh get ...
 
 ### Optional
 
-- `get_args` (Map of String)
-- `target_pve` (String)
+- `get_args` (Map of String) CLI args that are inserted after the api_path
+- `target_pve` (String) Target proxmox cluster that is used to execute the command. Defaults to what the pxc provider was initialized with.
 
 ### Read-Only
 
