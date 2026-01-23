@@ -3,17 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
 
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"time"
-
-	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +19,7 @@ func NewPveApiGetDataSource() datasource.DataSource {
 
 // PveApiGetDataSource defines the data source implementation.
 type PveApiGetDataSource struct {
-	kubesprayInventory KubesprayInventory
+	cloudInventory CloudInventory
 }
 
 // PveApiGetDataSourceModel describes the data source data model.
@@ -71,7 +65,7 @@ func (d *PveApiGetDataSource) Configure(ctx context.Context, req datasource.Conf
 		return
 	}
 
-	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
+	cloudInv, ok := req.ProviderData.(CloudInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -81,7 +75,7 @@ func (d *PveApiGetDataSource) Configure(ctx context.Context, req datasource.Conf
 		return
 	}
 
-	d.kubesprayInventory = kubesprayInv
+	d.cloudInventory = cloudInv
 }
 
 func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -93,20 +87,11 @@ func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	// init rpc client
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	// convert tf map to go map
 	// todo: use ElementsAs ?
@@ -119,7 +104,7 @@ func (d *PveApiGetDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// perform the request
-	cresp, err := client.GetProxmoxApi(ctx, &pb.GetProxmoxApiRequest{TargetPve: d.kubesprayInventory.TargetPve, ApiPath: data.ApiPath.ValueString(), GetArgs: getArgs})
+	cresp, err := client.GetProxmoxApi(ctx, &pb.GetProxmoxApiRequest{TargetPve: d.cloudInventory.TargetPve, ApiPath: data.ApiPath.ValueString(), GetArgs: getArgs})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make get api request, got error: %s", err))
 		return
