@@ -104,6 +104,11 @@ class CloudServiceStub(object):
                 request_serializer=cloud__pb2.GetPveInventoryRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetPveInventoryResponse.FromString,
                 _registered_method=True)
+        self.GetCloudDomain = channel.unary_unary(
+                '/protos.CloudService/GetCloudDomain',
+                request_serializer=cloud__pb2.GetCloudDomainRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetCloudDomainResponse.FromString,
+                _registered_method=True)
         self.GetVmVarsBlake = channel.unary_unary(
                 '/protos.CloudService/GetVmVarsBlake',
                 request_serializer=cloud__pb2.GetVmVarsBlakeRequest.SerializeToString,
@@ -198,6 +203,12 @@ class CloudServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetCloudDomain(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetVmVarsBlake(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -276,6 +287,11 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     servicer.GetPveInventory,
                     request_deserializer=cloud__pb2.GetPveInventoryRequest.FromString,
                     response_serializer=cloud__pb2.GetPveInventoryResponse.SerializeToString,
+            ),
+            'GetCloudDomain': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCloudDomain,
+                    request_deserializer=cloud__pb2.GetCloudDomainRequest.FromString,
+                    response_serializer=cloud__pb2.GetCloudDomainResponse.SerializeToString,
             ),
             'GetVmVarsBlake': grpc.unary_unary_rpc_method_handler(
                     servicer.GetVmVarsBlake,
@@ -661,6 +677,33 @@ class CloudService(object):
             '/protos.CloudService/GetPveInventory',
             cloud__pb2.GetPveInventoryRequest.SerializeToString,
             cloud__pb2.GetPveInventoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCloudDomain(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetCloudDomain',
+            cloud__pb2.GetCloudDomainRequest.SerializeToString,
+            cloud__pb2.GetCloudDomainResponse.FromString,
             options,
             channel_credentials,
             insecure,

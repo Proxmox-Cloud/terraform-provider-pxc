@@ -3,12 +3,12 @@
 page_title: "pxc_ceph_access Data Source - pxc"
 subcategory: ""
 description: |-
-  Fetches ceph conf and the admin keyring of the associated target_pve from the providers initialization.
+  Fetches ceph conf and the admin keyring of the associated target_pve from the kubespray inventoryfile passed to the provider during init.
 ---
 
 # pxc_ceph_access (Data Source)
 
-Fetches ceph conf and the admin keyring of the associated target_pve from the providers initialization.
+Fetches ceph conf and the admin keyring of the associated target_pve from the kubespray inventoryfile passed to the provider during init.
 
 
 

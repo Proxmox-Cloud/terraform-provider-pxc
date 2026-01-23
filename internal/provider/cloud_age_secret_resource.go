@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -106,26 +107,46 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// try decode the secret value with keyfiles from ~/.ssh
+	identities := []age.Identity{}
+	home, _ := os.UserHomeDir()
+	sshDir := filepath.Join(home, ".ssh")
+	
+	files, _ := os.ReadDir(sshDir)
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), "id_") && !strings.HasSuffix(file.Name(), ".pub") {
+			keyPath := filepath.Join(sshDir, file.Name())
+			
+			pemBytes, err := os.ReadFile(keyPath)
+			if err != nil {
+				continue
+			}
+
+			identity, err := agessh.ParseIdentity(pemBytes)
+			if err == nil {
+				identities = append(identities, identity)
+			}
+		}
+	}
+	
+	// additionally a env var can be passed to specific custom location (e.g. e2e usecase)
 	ageSshKey := os.Getenv("CLOUD_AGE_SSH_KEY_FILE")
-	if ageSshKey == "" {
-		resp.Diagnostics.AddError("ENV not set", "CLOUD_AGE_SSH_KEY_FILE env variable must be set to ssh key used for encrypting secret.")
-		return
-	}
+	if ageSshKey != "" {
+		pemBytes, err := os.ReadFile(ageSshKey)
+		if err != nil {
+			resp.Diagnostics.AddError("Read err", fmt.Sprintf("Error reading ssh key %s", err))
+			return
+		}
 
-	pemBytes, err := os.ReadFile(ageSshKey)
-	if err != nil {
-		resp.Diagnostics.AddError("Read err", fmt.Sprintf("Error reading ssh key %s", err))
-		return
-	}
-
-	identity, err := agessh.ParseIdentity(pemBytes)
-	if err != nil {
-		resp.Diagnostics.AddError("Parse err", fmt.Sprintf("Error parsing age id %s", err))
-		return
+		identity, err := agessh.ParseIdentity(pemBytes)
+		if err != nil {
+			resp.Diagnostics.AddError("Parse err", fmt.Sprintf("Error parsing age id %s", err))
+			return
+		}
+		identities = append(identities, identity)
 	}
 
 	b64Reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(data.B64AgeData.ValueString()))
-	re, err := age.Decrypt(b64Reader, identity)
+	re, err := age.Decrypt(b64Reader, identities...)
 	if err != nil {
 		resp.Diagnostics.AddError("Decrypt err", fmt.Sprintf("Failed to decrypt: %v (Ensure your SSH key matches one of the recipients)", err))
 		return
@@ -146,7 +167,7 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// perform the request
-	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretData: data.PlainData.String()})
+	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve:r.cloudInventory.TargetPve, CloudDomain: r.cloudInventory.CloudDomain, SecretName: data.SecretName.ValueString(), SecretData: data.PlainData.String()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp create cloud secret request, got error: %s", err))
 		return
@@ -235,7 +256,7 @@ func (r *CloudSecretAgeResource) Delete(ctx context.Context, req resource.Delete
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.DeleteCloudSecret(ctx, &pb.DeleteCloudSecretRequest{TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
+	cresp, err := client.DeleteCloudSecret(ctx, &pb.DeleteCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp delete cloud secret request, got error: %s", err))
 		return

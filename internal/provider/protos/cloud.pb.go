@@ -1053,10 +1053,11 @@ func (x *GetCloudFileSecretResponse) GetSecret() string {
 
 type CreateCloudSecretRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
-	SecretName    string                 `protobuf:"bytes,2,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
-	SecretData    string                 `protobuf:"bytes,3,opt,name=secret_data,json=secretData,proto3" json:"secret_data,omitempty"`
-	SecretType    string                 `protobuf:"bytes,4,opt,name=secret_type,json=secretType,proto3" json:"secret_type,omitempty"`
+	CloudDomain   string                 `protobuf:"bytes,1,opt,name=cloud_domain,json=cloudDomain,proto3" json:"cloud_domain,omitempty"`
+	TargetPve     string                 `protobuf:"bytes,2,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	SecretName    string                 `protobuf:"bytes,3,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
+	SecretData    string                 `protobuf:"bytes,4,opt,name=secret_data,json=secretData,proto3" json:"secret_data,omitempty"`
+	SecretType    string                 `protobuf:"bytes,5,opt,name=secret_type,json=secretType,proto3" json:"secret_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1089,6 +1090,13 @@ func (x *CreateCloudSecretRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CreateCloudSecretRequest.ProtoReflect.Descriptor instead.
 func (*CreateCloudSecretRequest) Descriptor() ([]byte, []int) {
 	return file_protos_cloud_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *CreateCloudSecretRequest) GetCloudDomain() string {
+	if x != nil {
+		return x.CloudDomain
+	}
+	return ""
 }
 
 func (x *CreateCloudSecretRequest) GetTargetPve() string {
@@ -1173,8 +1181,9 @@ func (x *CreateCloudSecretResponse) GetErrMessage() string {
 
 type DeleteCloudSecretRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
-	SecretName    string                 `protobuf:"bytes,2,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
+	CloudDomain   string                 `protobuf:"bytes,1,opt,name=cloud_domain,json=cloudDomain,proto3" json:"cloud_domain,omitempty"`
+	TargetPve     string                 `protobuf:"bytes,2,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	SecretName    string                 `protobuf:"bytes,3,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1207,6 +1216,13 @@ func (x *DeleteCloudSecretRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use DeleteCloudSecretRequest.ProtoReflect.Descriptor instead.
 func (*DeleteCloudSecretRequest) Descriptor() ([]byte, []int) {
 	return file_protos_cloud_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *DeleteCloudSecretRequest) GetCloudDomain() string {
+	if x != nil {
+		return x.CloudDomain
+	}
+	return ""
 }
 
 func (x *DeleteCloudSecretRequest) GetTargetPve() string {
@@ -1277,8 +1293,9 @@ func (x *DeleteCloudSecretResponse) GetErrMessage() string {
 
 type GetCloudSecretRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
-	SecretName    string                 `protobuf:"bytes,2,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
+	CloudDomain   string                 `protobuf:"bytes,1,opt,name=cloud_domain,json=cloudDomain,proto3" json:"cloud_domain,omitempty"`
+	TargetPve     string                 `protobuf:"bytes,2,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	SecretName    string                 `protobuf:"bytes,3,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1311,6 +1328,13 @@ func (x *GetCloudSecretRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetCloudSecretRequest.ProtoReflect.Descriptor instead.
 func (*GetCloudSecretRequest) Descriptor() ([]byte, []int) {
 	return file_protos_cloud_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetCloudSecretRequest) GetCloudDomain() string {
+	if x != nil {
+		return x.CloudDomain
+	}
+	return ""
 }
 
 func (x *GetCloudSecretRequest) GetTargetPve() string {
@@ -1373,8 +1397,9 @@ func (x *GetCloudSecretResponse) GetSecret() string {
 
 type GetCloudSecretsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
-	SecretType    string                 `protobuf:"bytes,2,opt,name=secret_type,json=secretType,proto3" json:"secret_type,omitempty"`
+	CloudDomain   string                 `protobuf:"bytes,1,opt,name=cloud_domain,json=cloudDomain,proto3" json:"cloud_domain,omitempty"`
+	TargetPve     string                 `protobuf:"bytes,2,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	SecretType    string                 `protobuf:"bytes,3,opt,name=secret_type,json=secretType,proto3" json:"secret_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1407,6 +1432,13 @@ func (x *GetCloudSecretsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetCloudSecretsRequest.ProtoReflect.Descriptor instead.
 func (*GetCloudSecretsRequest) Descriptor() ([]byte, []int) {
 	return file_protos_cloud_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetCloudSecretsRequest) GetCloudDomain() string {
+	if x != nil {
+		return x.CloudDomain
+	}
+	return ""
 }
 
 func (x *GetCloudSecretsRequest) GetTargetPve() string {
@@ -1470,7 +1502,8 @@ func (x *GetCloudSecretsResponse) GetSecrets() string {
 type GetVmVarsBlakeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
-	BlakeIds      []string               `protobuf:"bytes,2,rep,name=blake_ids,json=blakeIds,proto3" json:"blake_ids,omitempty"`
+	CloudDomain   string                 `protobuf:"bytes,2,opt,name=cloud_domain,json=cloudDomain,proto3" json:"cloud_domain,omitempty"`
+	BlakeIds      []string               `protobuf:"bytes,3,rep,name=blake_ids,json=blakeIds,proto3" json:"blake_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1508,6 +1541,13 @@ func (*GetVmVarsBlakeRequest) Descriptor() ([]byte, []int) {
 func (x *GetVmVarsBlakeRequest) GetTargetPve() string {
 	if x != nil {
 		return x.TargetPve
+	}
+	return ""
+}
+
+func (x *GetVmVarsBlakeRequest) GetCloudDomain() string {
+	if x != nil {
+		return x.CloudDomain
 	}
 	return ""
 }
@@ -1561,6 +1601,94 @@ func (x *GetVmVarsBlakeResponse) GetBlakeIdVars() map[string]string {
 		return x.BlakeIdVars
 	}
 	return nil
+}
+
+type GetCloudDomainRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCloudDomainRequest) Reset() {
+	*x = GetCloudDomainRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCloudDomainRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCloudDomainRequest) ProtoMessage() {}
+
+func (x *GetCloudDomainRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCloudDomainRequest.ProtoReflect.Descriptor instead.
+func (*GetCloudDomainRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetCloudDomainRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+type GetCloudDomainResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Domain        string                 `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCloudDomainResponse) Reset() {
+	*x = GetCloudDomainResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCloudDomainResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCloudDomainResponse) ProtoMessage() {}
+
+func (x *GetCloudDomainResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCloudDomainResponse.ProtoReflect.Descriptor instead.
+func (*GetCloudDomainResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetCloudDomainResponse) GetDomain() string {
+	if x != nil {
+		return x.Domain
+	}
+	return ""
 }
 
 var File_protos_cloud_proto protoreflect.FileDescriptor
@@ -1645,52 +1773,63 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"secretName\x12\x16\n" +
 	"\x06rstrip\x18\x03 \x01(\bR\x06rstrip\"4\n" +
 	"\x1aGetCloudFileSecretResponse\x12\x16\n" +
-	"\x06secret\x18\x01 \x01(\tR\x06secret\"\x9c\x01\n" +
-	"\x18CreateCloudSecretRequest\x12\x1d\n" +
+	"\x06secret\x18\x01 \x01(\tR\x06secret\"\xbf\x01\n" +
+	"\x18CreateCloudSecretRequest\x12!\n" +
+	"\fcloud_domain\x18\x01 \x01(\tR\vcloudDomain\x12\x1d\n" +
 	"\n" +
-	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1f\n" +
-	"\vsecret_name\x18\x02 \x01(\tR\n" +
+	"target_pve\x18\x02 \x01(\tR\ttargetPve\x12\x1f\n" +
+	"\vsecret_name\x18\x03 \x01(\tR\n" +
 	"secretName\x12\x1f\n" +
-	"\vsecret_data\x18\x03 \x01(\tR\n" +
+	"\vsecret_data\x18\x04 \x01(\tR\n" +
 	"secretData\x12\x1f\n" +
-	"\vsecret_type\x18\x04 \x01(\tR\n" +
+	"\vsecret_type\x18\x05 \x01(\tR\n" +
 	"secretType\"V\n" +
 	"\x19CreateCloudSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1f\n" +
 	"\verr_message\x18\x02 \x01(\tR\n" +
-	"errMessage\"Z\n" +
-	"\x18DeleteCloudSecretRequest\x12\x1d\n" +
+	"errMessage\"}\n" +
+	"\x18DeleteCloudSecretRequest\x12!\n" +
+	"\fcloud_domain\x18\x01 \x01(\tR\vcloudDomain\x12\x1d\n" +
 	"\n" +
-	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1f\n" +
-	"\vsecret_name\x18\x02 \x01(\tR\n" +
+	"target_pve\x18\x02 \x01(\tR\ttargetPve\x12\x1f\n" +
+	"\vsecret_name\x18\x03 \x01(\tR\n" +
 	"secretName\"V\n" +
 	"\x19DeleteCloudSecretResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1f\n" +
 	"\verr_message\x18\x02 \x01(\tR\n" +
-	"errMessage\"W\n" +
-	"\x15GetCloudSecretRequest\x12\x1d\n" +
+	"errMessage\"z\n" +
+	"\x15GetCloudSecretRequest\x12!\n" +
+	"\fcloud_domain\x18\x01 \x01(\tR\vcloudDomain\x12\x1d\n" +
 	"\n" +
-	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1f\n" +
-	"\vsecret_name\x18\x02 \x01(\tR\n" +
+	"target_pve\x18\x02 \x01(\tR\ttargetPve\x12\x1f\n" +
+	"\vsecret_name\x18\x03 \x01(\tR\n" +
 	"secretName\"0\n" +
 	"\x16GetCloudSecretResponse\x12\x16\n" +
-	"\x06secret\x18\x01 \x01(\tR\x06secret\"X\n" +
-	"\x16GetCloudSecretsRequest\x12\x1d\n" +
+	"\x06secret\x18\x01 \x01(\tR\x06secret\"{\n" +
+	"\x16GetCloudSecretsRequest\x12!\n" +
+	"\fcloud_domain\x18\x01 \x01(\tR\vcloudDomain\x12\x1d\n" +
 	"\n" +
-	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1f\n" +
-	"\vsecret_type\x18\x02 \x01(\tR\n" +
+	"target_pve\x18\x02 \x01(\tR\ttargetPve\x12\x1f\n" +
+	"\vsecret_type\x18\x03 \x01(\tR\n" +
 	"secretType\"3\n" +
 	"\x17GetCloudSecretsResponse\x12\x18\n" +
-	"\asecrets\x18\x01 \x01(\tR\asecrets\"S\n" +
+	"\asecrets\x18\x01 \x01(\tR\asecrets\"v\n" +
 	"\x15GetVmVarsBlakeRequest\x12\x1d\n" +
 	"\n" +
-	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1b\n" +
-	"\tblake_ids\x18\x02 \x03(\tR\bblakeIds\"\xad\x01\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12!\n" +
+	"\fcloud_domain\x18\x02 \x01(\tR\vcloudDomain\x12\x1b\n" +
+	"\tblake_ids\x18\x03 \x03(\tR\bblakeIds\"\xad\x01\n" +
 	"\x16GetVmVarsBlakeResponse\x12S\n" +
 	"\rblake_id_vars\x18\x01 \x03(\v2/.protos.GetVmVarsBlakeResponse.BlakeIdVarsEntryR\vblakeIdVars\x1a>\n" +
 	"\x10BlakeIdVarsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xeb\t\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"6\n" +
+	"\x15GetCloudDomainRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\"0\n" +
+	"\x16GetCloudDomainResponse\x12\x16\n" +
+	"\x06domain\x18\x01 \x01(\tR\x06domain2\xbc\n" +
+	"\n" +
 	"\fCloudService\x12R\n" +
 	"\x13GetMasterKubeconfig\x12\x1c.protos.GetKubeconfigRequest\x1a\x1d.protos.GetKubeconfigResponse\x12O\n" +
 	"\x0eGetClusterVars\x12\x1d.protos.GetClusterVarsRequest\x1a\x1e.protos.GetClusterVarsResponse\x12[\n" +
@@ -1706,6 +1845,7 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"\x10DeleteProxmoxApi\x12\x1f.protos.DeleteProxmoxApiRequest\x1a .protos.DeleteProxmoxApiResponse\x12O\n" +
 	"\x0eGetProxmoxHost\x12\x1d.protos.GetProxmoxHostRequest\x1a\x1e.protos.GetProxmoxHostResponse\x12R\n" +
 	"\x0fGetPveInventory\x12\x1e.protos.GetPveInventoryRequest\x1a\x1f.protos.GetPveInventoryResponse\x12O\n" +
+	"\x0eGetCloudDomain\x12\x1d.protos.GetCloudDomainRequest\x1a\x1e.protos.GetCloudDomainResponse\x12O\n" +
 	"\x0eGetVmVarsBlake\x12\x1d.protos.GetVmVarsBlakeRequest\x1a\x1e.protos.GetVmVarsBlakeResponseBQZOgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
 
 var (
@@ -1721,7 +1861,7 @@ func file_protos_cloud_proto_rawDescGZIP() []byte {
 }
 
 var file_protos_cloud_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_protos_cloud_proto_goTypes = []any{
 	(GetSshKeyRequest_KeyType)(0),      // 0: protos.GetSshKeyRequest.KeyType
 	(*GetPveInventoryRequest)(nil),     // 1: protos.GetPveInventoryRequest
@@ -1754,15 +1894,17 @@ var file_protos_cloud_proto_goTypes = []any{
 	(*GetCloudSecretsResponse)(nil),    // 28: protos.GetCloudSecretsResponse
 	(*GetVmVarsBlakeRequest)(nil),      // 29: protos.GetVmVarsBlakeRequest
 	(*GetVmVarsBlakeResponse)(nil),     // 30: protos.GetVmVarsBlakeResponse
-	nil,                                // 31: protos.GetProxmoxApiRequest.GetArgsEntry
-	nil,                                // 32: protos.CreateProxmoxApiRequest.CreateArgsEntry
-	nil,                                // 33: protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
+	(*GetCloudDomainRequest)(nil),      // 31: protos.GetCloudDomainRequest
+	(*GetCloudDomainResponse)(nil),     // 32: protos.GetCloudDomainResponse
+	nil,                                // 33: protos.GetProxmoxApiRequest.GetArgsEntry
+	nil,                                // 34: protos.CreateProxmoxApiRequest.CreateArgsEntry
+	nil,                                // 35: protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
 }
 var file_protos_cloud_proto_depIdxs = []int32{
-	31, // 0: protos.GetProxmoxApiRequest.get_args:type_name -> protos.GetProxmoxApiRequest.GetArgsEntry
-	32, // 1: protos.CreateProxmoxApiRequest.create_args:type_name -> protos.CreateProxmoxApiRequest.CreateArgsEntry
+	33, // 0: protos.GetProxmoxApiRequest.get_args:type_name -> protos.GetProxmoxApiRequest.GetArgsEntry
+	34, // 1: protos.CreateProxmoxApiRequest.create_args:type_name -> protos.CreateProxmoxApiRequest.CreateArgsEntry
 	0,  // 2: protos.GetSshKeyRequest.key_type:type_name -> protos.GetSshKeyRequest.KeyType
-	33, // 3: protos.GetVmVarsBlakeResponse.blake_id_vars:type_name -> protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
+	35, // 3: protos.GetVmVarsBlakeResponse.blake_id_vars:type_name -> protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
 	15, // 4: protos.CloudService.GetMasterKubeconfig:input_type -> protos.GetKubeconfigRequest
 	17, // 5: protos.CloudService.GetClusterVars:input_type -> protos.GetClusterVarsRequest
 	19, // 6: protos.CloudService.GetCloudFileSecret:input_type -> protos.GetCloudFileSecretRequest
@@ -1777,24 +1919,26 @@ var file_protos_cloud_proto_depIdxs = []int32{
 	9,  // 15: protos.CloudService.DeleteProxmoxApi:input_type -> protos.DeleteProxmoxApiRequest
 	3,  // 16: protos.CloudService.GetProxmoxHost:input_type -> protos.GetProxmoxHostRequest
 	1,  // 17: protos.CloudService.GetPveInventory:input_type -> protos.GetPveInventoryRequest
-	29, // 18: protos.CloudService.GetVmVarsBlake:input_type -> protos.GetVmVarsBlakeRequest
-	16, // 19: protos.CloudService.GetMasterKubeconfig:output_type -> protos.GetKubeconfigResponse
-	18, // 20: protos.CloudService.GetClusterVars:output_type -> protos.GetClusterVarsResponse
-	20, // 21: protos.CloudService.GetCloudFileSecret:output_type -> protos.GetCloudFileSecretResponse
-	22, // 22: protos.CloudService.CreateCloudSecret:output_type -> protos.CreateCloudSecretResponse
-	24, // 23: protos.CloudService.DeleteCloudSecret:output_type -> protos.DeleteCloudSecretResponse
-	26, // 24: protos.CloudService.GetCloudSecret:output_type -> protos.GetCloudSecretResponse
-	28, // 25: protos.CloudService.GetCloudSecrets:output_type -> protos.GetCloudSecretsResponse
-	14, // 26: protos.CloudService.GetCephAccess:output_type -> protos.GetCephAccessResponse
-	12, // 27: protos.CloudService.GetSshKey:output_type -> protos.GetSshKeyResponse
-	6,  // 28: protos.CloudService.GetProxmoxApi:output_type -> protos.GetProxmoxApiResponse
-	8,  // 29: protos.CloudService.CreateProxmoxApi:output_type -> protos.CreateProxmoxApiResponse
-	10, // 30: protos.CloudService.DeleteProxmoxApi:output_type -> protos.DeleteProxmoxApiResponse
-	4,  // 31: protos.CloudService.GetProxmoxHost:output_type -> protos.GetProxmoxHostResponse
-	2,  // 32: protos.CloudService.GetPveInventory:output_type -> protos.GetPveInventoryResponse
-	30, // 33: protos.CloudService.GetVmVarsBlake:output_type -> protos.GetVmVarsBlakeResponse
-	19, // [19:34] is the sub-list for method output_type
-	4,  // [4:19] is the sub-list for method input_type
+	31, // 18: protos.CloudService.GetCloudDomain:input_type -> protos.GetCloudDomainRequest
+	29, // 19: protos.CloudService.GetVmVarsBlake:input_type -> protos.GetVmVarsBlakeRequest
+	16, // 20: protos.CloudService.GetMasterKubeconfig:output_type -> protos.GetKubeconfigResponse
+	18, // 21: protos.CloudService.GetClusterVars:output_type -> protos.GetClusterVarsResponse
+	20, // 22: protos.CloudService.GetCloudFileSecret:output_type -> protos.GetCloudFileSecretResponse
+	22, // 23: protos.CloudService.CreateCloudSecret:output_type -> protos.CreateCloudSecretResponse
+	24, // 24: protos.CloudService.DeleteCloudSecret:output_type -> protos.DeleteCloudSecretResponse
+	26, // 25: protos.CloudService.GetCloudSecret:output_type -> protos.GetCloudSecretResponse
+	28, // 26: protos.CloudService.GetCloudSecrets:output_type -> protos.GetCloudSecretsResponse
+	14, // 27: protos.CloudService.GetCephAccess:output_type -> protos.GetCephAccessResponse
+	12, // 28: protos.CloudService.GetSshKey:output_type -> protos.GetSshKeyResponse
+	6,  // 29: protos.CloudService.GetProxmoxApi:output_type -> protos.GetProxmoxApiResponse
+	8,  // 30: protos.CloudService.CreateProxmoxApi:output_type -> protos.CreateProxmoxApiResponse
+	10, // 31: protos.CloudService.DeleteProxmoxApi:output_type -> protos.DeleteProxmoxApiResponse
+	4,  // 32: protos.CloudService.GetProxmoxHost:output_type -> protos.GetProxmoxHostResponse
+	2,  // 33: protos.CloudService.GetPveInventory:output_type -> protos.GetPveInventoryResponse
+	32, // 34: protos.CloudService.GetCloudDomain:output_type -> protos.GetCloudDomainResponse
+	30, // 35: protos.CloudService.GetVmVarsBlake:output_type -> protos.GetVmVarsBlakeResponse
+	20, // [20:36] is the sub-list for method output_type
+	4,  // [4:20] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -1811,7 +1955,7 @@ func file_protos_cloud_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protos_cloud_proto_rawDesc), len(file_protos_cloud_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   33,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

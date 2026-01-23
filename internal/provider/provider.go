@@ -84,6 +84,7 @@ type CloudInventory struct {
 	Plugin	string 	`yaml:"plugin"`
 	TargetPve string
 	StackName string
+	CloudDomain string
 
 	// nullables
 	KubesprayInventory *KubesprayInventory
@@ -181,11 +182,6 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 			return
 	}
 
-	// simply pass the inventory as data
-	resp.DataSourceData = cloudInv
-	resp.ResourceData = cloudInv
-	resp.EphemeralResourceData = cloudInv
-
 	// next launch our python grpc server
 
 	// todo: implement option to specify pythonpath in provider and pass that up here somehow
@@ -272,8 +268,24 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 			continue
 		}
 
-		break // its up and running
+		// its up and running, we now fetch the cloud domain and return
+		cclient := pb.NewCloudServiceClient(conn)
+		cresp, err := cclient.GetCloudDomain(ctx, &pb.GetCloudDomainRequest{TargetPve: cloudInv.TargetPve})
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable get ceph access files, got error: %s", err))
+			return
+		}
+
+		// set the domain for all resources to use
+		cloudInv.CloudDomain = cresp.Domain
+		break 
 	}
+
+	// simply pass the inventory as data
+	resp.DataSourceData = cloudInv
+	resp.ResourceData = cloudInv
+	resp.EphemeralResourceData = cloudInv
+
 
 }
 

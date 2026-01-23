@@ -15,13 +15,8 @@ It is meant to be used with proxmox cloud kubespray clusters.
 ## Example Usage
 
 ```terraform
-locals {
-  inventory = yamldecode(file("../kubespray-inv.yaml"))
-}
-
 provider "pxc" {
-  target_pve     = local.inventory.target_pve
-  k8s_stack_name = local.inventory.stack_name
+  kubespray_inv = "../kubespray-inv.yaml"
 }
 ```
 
@@ -30,4 +25,8 @@ provider "pxc" {
 
 ### Required
 
-- `kubespray_inv` (String) Path to your kubespray inventory yaml file.
+- `inventory` (String) Path to your proxmox cloud inventory yaml file.
+
+### Optional
+
+- `target_cluster` (String) Cluster you want to target, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv
