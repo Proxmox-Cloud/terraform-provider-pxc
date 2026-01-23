@@ -3,17 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
 
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"time"
-
-	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +19,7 @@ func NewProxmoxHostDataSource() datasource.DataSource {
 
 // ProxmoxHostDataSource defines the data source implementation.
 type ProxmoxHostDataSource struct {
-	kubesprayInventory KubesprayInventory
+	cloudInventory CloudInventory
 }
 
 // ProxmoxHostDataSourceModel describes the data source data model.
@@ -56,7 +50,7 @@ func (d *ProxmoxHostDataSource) Configure(ctx context.Context, req datasource.Co
 		return
 	}
 
-	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
+	cloudInv, ok := req.ProviderData.(CloudInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -66,7 +60,7 @@ func (d *ProxmoxHostDataSource) Configure(ctx context.Context, req datasource.Co
 		return
 	}
 
-	d.kubesprayInventory = kubesprayInv
+	d.cloudInventory = cloudInv
 }
 
 func (d *ProxmoxHostDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -78,23 +72,14 @@ func (d *ProxmoxHostDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	// init rpc client
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetProxmoxHost(ctx, &pb.GetProxmoxHostRequest{TargetPve: d.kubesprayInventory.TargetPve})
+	cresp, err := client.GetProxmoxHost(ctx, &pb.GetProxmoxHostRequest{TargetPve: d.cloudInventory.TargetPve})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get proxmox host, got error: %s", err))
 		return

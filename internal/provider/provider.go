@@ -41,7 +41,8 @@ type PxcProvider struct {
 
 // PxcProviderModel describes the provider data model.
 type PxcProviderModel struct {
-	InventoryPath types.String `tfsdk:"kubespray_inv"`
+	InventoryPath types.String `tfsdk:"inventory"`
+	TargetCluster types.String `tfsdk:"target_cluster"`
 	exitCh       chan bool
 }
 
@@ -53,13 +54,18 @@ func (p *PxcProvider) Metadata(ctx context.Context, req provider.MetadataRequest
 func (p *PxcProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"kubespray_inv": schema.StringAttribute{
-				MarkdownDescription: "Path to your kubespray inventory yaml file.",
+			"inventory": schema.StringAttribute{
+				MarkdownDescription: "Path to your proxmox cloud inventory yaml file.",
 				Required:            true,
+			},
+			"target_cluster": schema.StringAttribute{
+				MarkdownDescription: "Cluster you want to target, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv",
+				Optional:            true,
 			},
 		},
 	}
 }
+
 
 type KubesprayInventory struct {
 	TargetPve          string               `yaml:"target_pve"`
@@ -68,6 +74,22 @@ type KubesprayInventory struct {
 	ClusterCertEntries []interface{}   `yaml:"cluster_cert_entries"`
 	ExternalDomains    []interface{} `yaml:"external_domains"`
 }
+
+type PveCloudInventory struct {
+	PveCloudDomain string `yaml:"pve_cloud_domain"`
+}
+
+// this gets passed down to resources and they can dynamically pick / err what they need
+type CloudInventory struct {
+	Plugin	string 	`yaml:"plugin"`
+	TargetPve string
+	StackName string
+
+	// nullables
+	KubesprayInventory *KubesprayInventory
+	PveCloudInventory *PveCloudInventory
+}
+
 
 func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data PxcProviderModel
@@ -78,6 +100,7 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
+	// first we parse the inventory file
 	yamlFile, err := os.ReadFile(data.InventoryPath.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -86,8 +109,10 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		)
 		return
 	}
-	var inventory KubesprayInventory
-	err = yaml.Unmarshal(yamlFile, &inventory)
+
+	// first we need to check what type of inventory was passed
+	var cloudInv CloudInventory
+	err = yaml.Unmarshal(yamlFile, &cloudInv)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Parsing Inventory YAML",
@@ -96,12 +121,72 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
-	// simply pass the inventory as data
-	resp.DataSourceData = inventory
-	resp.ResourceData = inventory
-	resp.EphemeralResourceData = inventory
+	switch cloudInv.Plugin {
+		case "pxc.cloud.pve_cloud_inv":
+			// core cloud inventory
+			if data.TargetCluster.IsNull() {
+				resp.Diagnostics.AddError(
+					"Bad configuration",
+					"When passing a pxc.cloud.pve_cloud_inv inventory you need to set target_cluster in the provider configuration!",
+				)
+				return
+			}
+			// parse the pve_cloud_inv file
+			var pveCloudInventory PveCloudInventory
+			err = yaml.Unmarshal(yamlFile, &pveCloudInventory)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error Parsing Inventory YAML",
+					"Could not unmarshal YAML: "+err.Error(),
+				)
+				return
+			}
 
-	// launch our python grpc server
+			cloudInv.StackName = "master" // only one cloud inv per cloud
+			cloudInv.TargetPve = fmt.Sprintf("%s.%s", data.TargetCluster.ValueString(), pveCloudInventory.PveCloudDomain)
+
+			cloudInv.PveCloudInventory = &pveCloudInventory
+
+		case "pxc.cloud.kubespray_inv":
+			// kubernetes
+			if !data.TargetCluster.IsNull() {
+				resp.Diagnostics.AddError(
+					"Bad configuration",
+					"When passing a pxc.cloud.kubespray inventory you are not allowed to set target_cluster! It is sourced from the inventory file.",
+				)
+				return
+			}
+
+			var kubeInv KubesprayInventory
+			err = yaml.Unmarshal(yamlFile, &kubeInv)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error Parsing Inventory YAML",
+					"Could not unmarshal YAML: "+err.Error(),
+				)
+				return
+			}
+
+			cloudInv.TargetPve = kubeInv.TargetPve
+			cloudInv.StackName = kubeInv.StackName
+
+			cloudInv.KubesprayInventory = &kubeInv
+
+
+		default:
+			resp.Diagnostics.AddError(
+				"Unknown type",
+				"Unknown plugin type: "+ cloudInv.Plugin,
+			)
+			return
+	}
+
+	// simply pass the inventory as data
+	resp.DataSourceData = cloudInv
+	resp.ResourceData = cloudInv
+	resp.EphemeralResourceData = cloudInv
+
+	// next launch our python grpc server
 
 	// todo: implement option to specify pythonpath in provider and pass that up here somehow
 	// or find a better solution
@@ -168,7 +253,7 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		defer cancel()
 
 		healthClient := pb.NewHealthClient(conn)
-		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{TargetPve: inventory.TargetPve})
+		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{TargetPve: cloudInv.TargetPve})
 
 		if err != nil {
 			time.Sleep(200 * time.Millisecond)
@@ -196,7 +281,9 @@ func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource 
 	return []func() resource.Resource{
 		NewGotifyAppResource,
 		NewCloudSecretResource,
+		NewCloudSecretAgeResource,
 		NewPveGotifyTargetResource,
+		NewPveGraphiteExporterResource,
 	}
 }
 
@@ -236,4 +323,30 @@ func New(version string, exitCh chan bool) func() provider.Provider {
 			exitCh:  exitCh,
 		}
 	}
+}
+
+
+func GetCloudRpcService(ctx context.Context)(pb.CloudServiceClient, error){
+	// init rpc client
+	socketPath := fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid())
+
+	// if this env var is set we connect to a manually launched pve cloud rpc server
+	// for easier debugging
+	manualPid := os.Getenv("PXC_RPC_MANUAL_PID")
+	if manualPid != "" {
+		socketPath = fmt.Sprintf("unix:///tmp/pc-rpc-%s.sock", manualPid)
+	}
+
+	tflog.Info(ctx, socketPath)
+	conn, err := grpc.NewClient(
+		socketPath,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	client := pb.NewCloudServiceClient(conn)
+
+	return client, nil
 }

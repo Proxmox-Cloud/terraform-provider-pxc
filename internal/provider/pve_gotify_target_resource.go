@@ -6,8 +6,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
-	"time"
 
 	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,8 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -30,7 +26,7 @@ func NewPveGotifyTargetResource() resource.Resource {
 
 // PveGotifyTargetResource defines the resource implementation.
 type PveGotifyTargetResource struct {
-	kubesprayInventory KubesprayInventory
+	cloudInventory CloudInventory
 }
 
 // PveGotifyTargetResourceModel describes the resource data model.
@@ -71,7 +67,7 @@ func (r *PveGotifyTargetResource) Configure(ctx context.Context, req resource.Co
 	if req.ProviderData == nil {
 		return
 	}
-	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
+	cloudInv, ok := req.ProviderData.(CloudInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -81,7 +77,7 @@ func (r *PveGotifyTargetResource) Configure(ctx context.Context, req resource.Co
 		return
 	}
 
-	r.kubesprayInventory = kubesprayInv
+	r.cloudInventory = cloudInv
 }
 
 func (r *PveGotifyTargetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -94,31 +90,21 @@ func (r *PveGotifyTargetResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// init rpc client
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		//"unix:///tmp/pc-rpc-2222.sock",
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	createArgs := map[string]string{
-		"--name":    fmt.Sprintf("gotify-%s", r.kubesprayInventory.StackName),
+		"--name":    fmt.Sprintf("gotify-%s", r.cloudInventory.StackName),
 		"--server":  fmt.Sprintf("https://%s", data.GotifyHost.ValueString()),
 		"--token":   data.GotifyToken.ValueString(),
 		"--comment": "Proxmox cloud gotify alerts.",
 	}
 
 	// perform the request
-	cresp, err := client.CreateProxmoxApi(ctx, &pb.CreateProxmoxApiRequest{TargetPve: r.kubesprayInventory.TargetPve, ApiPath: "/cluster/notifications/endpoints/gotify", CreateArgs: createArgs})
+	cresp, err := client.CreateProxmoxApi(ctx, &pb.CreateProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: "/cluster/notifications/endpoints/gotify", CreateArgs: createArgs})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make create gotify api request, got error: %s", err))
 		return
@@ -131,11 +117,11 @@ func (r *PveGotifyTargetResource) Create(ctx context.Context, req resource.Creat
 
 	// create error matcher
 	createArgs = map[string]string{
-		"--name":           fmt.Sprintf("gotify-%s-matcher", r.kubesprayInventory.StackName),
-		"--target":         fmt.Sprintf("gotify-%s", r.kubesprayInventory.StackName),
+		"--name":           fmt.Sprintf("gotify-%s-matcher", r.cloudInventory.StackName),
+		"--target":         fmt.Sprintf("gotify-%s", r.cloudInventory.StackName),
 		"--match-severity": "error",
 	}
-	cresp, err = client.CreateProxmoxApi(ctx, &pb.CreateProxmoxApiRequest{TargetPve: r.kubesprayInventory.TargetPve, ApiPath: "/cluster/notifications/matchers", CreateArgs: createArgs})
+	cresp, err = client.CreateProxmoxApi(ctx, &pb.CreateProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: "/cluster/notifications/matchers", CreateArgs: createArgs})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make create matcher api request, got error: %s", err))
 		return
@@ -208,23 +194,15 @@ func (r *PveGotifyTargetResource) Delete(ctx context.Context, req resource.Delet
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// init rpc client
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	// delete the matcher first
-	cresp, err := client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.kubesprayInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/matchers/%s", fmt.Sprintf("gotify-%s-matcher", r.kubesprayInventory.StackName))})
+	cresp, err := client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/matchers/%s", fmt.Sprintf("gotify-%s-matcher", r.cloudInventory.StackName))})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make delete matcher api request, got error: %s", err))
 		return
@@ -236,7 +214,7 @@ func (r *PveGotifyTargetResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// perform the request to delete gotify notification target
-	cresp, err = client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.kubesprayInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/endpoints/gotify/%s", fmt.Sprintf("gotify-%s", r.kubesprayInventory.StackName))})
+	cresp, err = client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/endpoints/gotify/%s", fmt.Sprintf("gotify-%s", r.cloudInventory.StackName))})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make delete gotify api request, got error: %s", err))
 		return

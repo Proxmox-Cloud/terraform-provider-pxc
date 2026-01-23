@@ -4,19 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"time"
-
-	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
-	"os"
-
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -28,7 +19,7 @@ func NewCephAccessDataSource() datasource.DataSource {
 
 // CephAccessDataSource defines the data source implementation.
 type CephAccessDataSource struct {
-	kubesprayInventory KubesprayInventory
+	cloudInventory CloudInventory
 }
 
 // CephAccessDataSourceModel describes the data source data model.
@@ -43,8 +34,8 @@ func (d *CephAccessDataSource) Metadata(ctx context.Context, req datasource.Meta
 
 func (d *CephAccessDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Fetches ceph conf and the admin keyring of the associated target_pve from the providers initialization.",
-
+		MarkdownDescription: "Fetches ceph conf and the admin keyring of the associated target_pve from the kubespray inventory" +
+			"file passed to the provider during init.",
 		Attributes: map[string]schema.Attribute{
 			"ceph_conf": schema.StringAttribute{
 				Computed:            true,
@@ -64,7 +55,7 @@ func (d *CephAccessDataSource) Configure(ctx context.Context, req datasource.Con
 		return
 	}
 
-	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
+	cloudInv, ok := req.ProviderData.(CloudInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -74,7 +65,7 @@ func (d *CephAccessDataSource) Configure(ctx context.Context, req datasource.Con
 		return
 	}
 
-	d.kubesprayInventory = kubesprayInv
+	d.cloudInventory = cloudInv
 }
 
 func (d *CephAccessDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -86,24 +77,14 @@ func (d *CephAccessDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	// init rpc client
-	tflog.Info(ctx, fmt.Sprintf("Connecting to unix:///tmp/pc-rpc-%d.sock", os.Getpid()))
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetCephAccess(ctx, &pb.GetCephAccessRequest{TargetPve: d.kubesprayInventory.TargetPve})
+	cresp, err := client.GetCephAccess(ctx, &pb.GetCephAccessRequest{TargetPve: d.cloudInventory.TargetPve})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable get ceph access files, got error: %s", err))
 		return

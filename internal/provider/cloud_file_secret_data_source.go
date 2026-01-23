@@ -3,18 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
 
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"time"
-
-	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -26,7 +19,7 @@ func NewCloudFileSecretDataSource() datasource.DataSource {
 
 // CloudFileSecretDataSource defines the data source implementation.
 type CloudFileSecretDataSource struct {
-	kubesprayInventory KubesprayInventory
+	cloudInventory CloudInventory
 }
 
 // CloudFileSecretDataSourceModel describes the data source data model.
@@ -67,7 +60,7 @@ func (d *CloudFileSecretDataSource) Configure(ctx context.Context, req datasourc
 		return
 	}
 
-	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
+	cloudInv, ok := req.ProviderData.(CloudInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -77,7 +70,7 @@ func (d *CloudFileSecretDataSource) Configure(ctx context.Context, req datasourc
 		return
 	}
 
-	d.kubesprayInventory = kubesprayInv
+	d.cloudInventory = cloudInv
 }
 
 func (d *CloudFileSecretDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -89,21 +82,11 @@ func (d *CloudFileSecretDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	// init rpc client
-	tflog.Info(ctx, fmt.Sprintf("Connecting to unix:///tmp/pc-rpc-%d.sock", os.Getpid()))
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable init grpc client, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	// perform the request
 	rstrip := true
@@ -112,7 +95,7 @@ func (d *CloudFileSecretDataSource) Read(ctx context.Context, req datasource.Rea
 		rstrip = data.Rstrip.ValueBool()
 	}
 
-	cresp, err := client.GetCloudFileSecret(ctx, &pb.GetCloudFileSecretRequest{TargetPve: d.kubesprayInventory.TargetPve, SecretName: data.SecretName.ValueString(), Rstrip: rstrip})
+	cresp, err := client.GetCloudFileSecret(ctx, &pb.GetCloudFileSecretRequest{TargetPve: d.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), Rstrip: rstrip})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get cloud file secret, got error: %s", err))
 		return

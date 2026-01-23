@@ -175,7 +175,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         engine = await get_engine(online_pve_host)
 
         with Session(engine) as session:
-            stmt = select(ProxmoxCloudSecrets).where(ProxmoxCloudSecrets.target_pve == target_pve and ProxmoxCloudSecrets.secret_type == secret_type)
+            stmt = select(ProxmoxCloudSecrets).where(ProxmoxCloudSecrets.target_pve == target_pve, ProxmoxCloudSecrets.secret_type == secret_type)
             records = session.scalars(stmt).all()
 
         return cloud_pb2.GetCloudSecretsResponse(secrets=json.dumps({record.secret_name: record.secret_data for record in records}))

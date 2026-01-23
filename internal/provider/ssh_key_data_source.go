@@ -3,19 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
 
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"time"
-
-	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -27,7 +21,7 @@ func NewSshKeyDataSource() datasource.DataSource {
 
 // SshKeyDataSource defines the data source implementation.
 type SshKeyDataSource struct {
-	kubesprayInventory KubesprayInventory
+	cloudInventory CloudInventory
 }
 
 // SshKeyDataSourceModel describes the data source data model.
@@ -66,7 +60,7 @@ func (d *SshKeyDataSource) Configure(ctx context.Context, req datasource.Configu
 		return
 	}
 
-	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
+	cloudInv, ok := req.ProviderData.(CloudInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -76,7 +70,7 @@ func (d *SshKeyDataSource) Configure(ctx context.Context, req datasource.Configu
 		return
 	}
 
-	d.kubesprayInventory = kubesprayInv
+	d.cloudInventory = cloudInv
 }
 
 func (d *SshKeyDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -95,23 +89,14 @@ func (d *SshKeyDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	// init rpc client
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetSshKey(ctx, &pb.GetSshKeyRequest{TargetPve: d.kubesprayInventory.TargetPve, KeyType: pb.GetSshKeyRequest_KeyType(keyTypeInt)})
+	cresp, err := client.GetSshKey(ctx, &pb.GetSshKeyRequest{TargetPve: d.cloudInventory.TargetPve, KeyType: pb.GetSshKeyRequest_KeyType(keyTypeInt)})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get ssh key, got error: %s", err))
 		return

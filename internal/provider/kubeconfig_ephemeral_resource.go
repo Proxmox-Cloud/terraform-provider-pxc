@@ -2,19 +2,12 @@ package provider
 
 import (
 	"context"
-	"os"
+	"fmt"
 
+	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"fmt"
-
-	"time"
-
-	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -26,7 +19,7 @@ func NewKubeconfigEphemeralResource() ephemeral.EphemeralResource {
 
 // KubeconfigEphemeralResource defines the ephemeral resource implementation.
 type KubeconfigEphemeralResource struct {
-	kubesprayInventory KubesprayInventory
+	cloudInventory CloudInventory
 }
 
 // KubeconfigEphemeralResourceModel describes the ephemeral resource data model.
@@ -59,7 +52,7 @@ func (r *KubeconfigEphemeralResource) Configure(ctx context.Context, req ephemer
 		return
 	}
 
-	kubesprayInv, ok := req.ProviderData.(KubesprayInventory)
+	cloudInv, ok := req.ProviderData.(CloudInventory)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -69,7 +62,7 @@ func (r *KubeconfigEphemeralResource) Configure(ctx context.Context, req ephemer
 		return
 	}
 
-	r.kubesprayInventory = kubesprayInv
+	r.cloudInventory = cloudInv
 }
 
 func (r *KubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
@@ -81,23 +74,14 @@ func (r *KubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral.Op
 		return
 	}
 
-	// init rpc client
-	conn, err := grpc.NewClient(
-		fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	client, err := GetCloudRpcService(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init grpc client, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
 		return
 	}
-	defer conn.Close()
-
-	client := pb.NewCloudServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	// perform the request
-	cresp, err := client.GetMasterKubeconfig(ctx, &pb.GetKubeconfigRequest{TargetPve: r.kubesprayInventory.TargetPve, StackName: r.kubesprayInventory.StackName})
+	cresp, err := client.GetMasterKubeconfig(ctx, &pb.GetKubeconfigRequest{TargetPve: r.cloudInventory.TargetPve, StackName: r.cloudInventory.StackName})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get kubeconfig, got error: %s", err))
 		return

@@ -4,9 +4,13 @@
 package provider
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"time"
 
 	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
@@ -18,35 +22,38 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"filippo.io/age"
+	"filippo.io/age/agessh"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &CloudSecretResource{}
-var _ resource.ResourceWithImportState = &CloudSecretResource{}
+var _ resource.Resource = &CloudSecretAgeResource{}
+var _ resource.ResourceWithImportState = &CloudSecretAgeResource{}
 
-func NewCloudSecretResource() resource.Resource {
-	return &CloudSecretResource{}
+func NewCloudSecretAgeResource() resource.Resource {
+	return &CloudSecretAgeResource{}
 }
 
-// CloudSecretResource defines the resource implementation.
-type CloudSecretResource struct {
+// CloudSecretAgeResource defines the resource implementation.
+type CloudSecretAgeResource struct {
 	cloudInventory CloudInventory
 }
 
-// CloudSecretResourceModel describes the resource data model.
-type CloudSecretResourceModel struct {
+// CloudSecretAgeResourceModel describes the resource data model.
+type CloudSecretAgeResourceModel struct {
 	SecretName types.String `tfsdk:"secret_name"`
-	SecretData types.String `tfsdk:"secret_data"`
+	B64AgeData types.String `tfsdk:"b64_age_data"`
+	PlainData  types.String `tfsdk:"plain_data"`
 }
 
-func (r *CloudSecretResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_cloud_secret"
+func (r *CloudSecretAgeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_cloud_age_secret"
 }
 
-func (r *CloudSecretResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *CloudSecretAgeResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates a proxmox cloud secret that is saved in the clouds patroni postgres.",
-
+		MarkdownDescription: "Creates age encrypted secret in proxmox cloud. This is useful for storing hard coded secrets safely in git repositories. This resource will try to use keys from the ~/.ssh directory for decryption during resource creation.",
 		Attributes: map[string]schema.Attribute{
 			"secret_name": schema.StringAttribute{
 				Required:            true,
@@ -55,19 +62,22 @@ func (r *CloudSecretResource) Schema(ctx context.Context, req resource.SchemaReq
 					stringplanmodifier.RequiresReplace(), // lazy replace
 				},
 			},
-			// todo: figure out terraforms absurd type system to avoid jsonencode and decode calls to pass / receive dynamic values
-			"secret_data": schema.StringAttribute{
+			"b64_age_data": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Secret data as json string, use jsonencode to pass your terraform object (will be converted to json on storage).",
+				MarkdownDescription: "Insert your b64 encoded age encrypted secret here, use `age -R ~/.ssh/id_ed25519.pub -R ~/.ssh/id_rsa.pub secret.file | base64 -w0` to generate the value. Currently only supports string files.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(), // lazy replace
 				},
+			},
+			"plain_data": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "During resource creation the provider looks at the env var CLOUD_AGE_SSH_KEY_FILE to load file for initial decryption. Once the resource is created you can here access the unencrypted secret, this is for convenience sake. You can also use the pxc_cloud_secret datasource to access it.",
 			},
 		},
 	}
 }
 
-func (r *CloudSecretResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *CloudSecretAgeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -85,8 +95,8 @@ func (r *CloudSecretResource) Configure(ctx context.Context, req resource.Config
 	r.cloudInventory = cloudInv
 }
 
-func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data CloudSecretResourceModel
+func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data CloudSecretAgeResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -95,6 +105,40 @@ func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
+	// try decode the secret value with keyfiles from ~/.ssh
+	ageSshKey := os.Getenv("CLOUD_AGE_SSH_KEY_FILE")
+	if ageSshKey == "" {
+		resp.Diagnostics.AddError("ENV not set", "CLOUD_AGE_SSH_KEY_FILE env variable must be set to ssh key used for encrypting secret.")
+		return
+	}
+
+	pemBytes, err := os.ReadFile(ageSshKey)
+	if err != nil {
+		resp.Diagnostics.AddError("Read err", fmt.Sprintf("Error reading ssh key %s", err))
+		return
+	}
+
+	identity, err := agessh.ParseIdentity(pemBytes)
+	if err != nil {
+		resp.Diagnostics.AddError("Parse err", fmt.Sprintf("Error parsing age id %s", err))
+		return
+	}
+
+	b64Reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(data.B64AgeData.ValueString()))
+	re, err := age.Decrypt(b64Reader, identity)
+	if err != nil {
+		resp.Diagnostics.AddError("Decrypt err", fmt.Sprintf("Failed to decrypt: %v (Ensure your SSH key matches one of the recipients)", err))
+		return
+	}
+
+	var out bytes.Buffer
+	if _, err := io.Copy(&out, re); err != nil {
+		resp.Diagnostics.AddError("Read err", fmt.Sprintf("Error reading decrypted data: %v", err))
+		return
+	}
+
+	data.PlainData = types.StringValue(out.String())
+
 	client, err := GetCloudRpcService(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
@@ -102,7 +146,7 @@ func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// perform the request
-	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretData: data.SecretData.ValueString()})
+	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretData: data.PlainData.String()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp create cloud secret request, got error: %s", err))
 		return
@@ -117,8 +161,8 @@ func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *CloudSecretResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data CloudSecretResourceModel
+func (r *CloudSecretAgeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data CloudSecretAgeResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -139,14 +183,13 @@ func (r *CloudSecretResource) Read(ctx context.Context, req resource.ReadRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *CloudSecretResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *CloudSecretAgeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	resp.Diagnostics.AddError(
 		"Update Not Supported",
 		"This resource does not support in-place updates. Any change to these attributes "+
 			"should have triggered a replacement. This is a provider bug.",
 	)
-
-	// var data CloudSecretResourceModel
+	// var data CloudSecretAgeResourceModel
 
 	// // Read Terraform plan data into the model
 	// resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -167,8 +210,8 @@ func (r *CloudSecretResource) Update(ctx context.Context, req resource.UpdateReq
 	// resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *CloudSecretResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data CloudSecretResourceModel
+func (r *CloudSecretAgeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data CloudSecretAgeResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -205,6 +248,6 @@ func (r *CloudSecretResource) Delete(ctx context.Context, req resource.DeleteReq
 
 }
 
-func (r *CloudSecretResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *CloudSecretAgeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
