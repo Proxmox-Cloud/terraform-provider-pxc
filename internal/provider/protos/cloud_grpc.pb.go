@@ -33,6 +33,7 @@ const (
 	CloudService_DeleteProxmoxApi_FullMethodName    = "/protos.CloudService/DeleteProxmoxApi"
 	CloudService_GetProxmoxHost_FullMethodName      = "/protos.CloudService/GetProxmoxHost"
 	CloudService_GetPveInventory_FullMethodName     = "/protos.CloudService/GetPveInventory"
+	CloudService_GetCloudDomain_FullMethodName      = "/protos.CloudService/GetCloudDomain"
 	CloudService_GetVmVarsBlake_FullMethodName      = "/protos.CloudService/GetVmVarsBlake"
 )
 
@@ -54,6 +55,7 @@ type CloudServiceClient interface {
 	DeleteProxmoxApi(ctx context.Context, in *DeleteProxmoxApiRequest, opts ...grpc.CallOption) (*DeleteProxmoxApiResponse, error)
 	GetProxmoxHost(ctx context.Context, in *GetProxmoxHostRequest, opts ...grpc.CallOption) (*GetProxmoxHostResponse, error)
 	GetPveInventory(ctx context.Context, in *GetPveInventoryRequest, opts ...grpc.CallOption) (*GetPveInventoryResponse, error)
+	GetCloudDomain(ctx context.Context, in *GetCloudDomainRequest, opts ...grpc.CallOption) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(ctx context.Context, in *GetVmVarsBlakeRequest, opts ...grpc.CallOption) (*GetVmVarsBlakeResponse, error)
 }
 
@@ -205,6 +207,16 @@ func (c *cloudServiceClient) GetPveInventory(ctx context.Context, in *GetPveInve
 	return out, nil
 }
 
+func (c *cloudServiceClient) GetCloudDomain(ctx context.Context, in *GetCloudDomainRequest, opts ...grpc.CallOption) (*GetCloudDomainResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCloudDomainResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetCloudDomain_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *cloudServiceClient) GetVmVarsBlake(ctx context.Context, in *GetVmVarsBlakeRequest, opts ...grpc.CallOption) (*GetVmVarsBlakeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetVmVarsBlakeResponse)
@@ -233,6 +245,7 @@ type CloudServiceServer interface {
 	DeleteProxmoxApi(context.Context, *DeleteProxmoxApiRequest) (*DeleteProxmoxApiResponse, error)
 	GetProxmoxHost(context.Context, *GetProxmoxHostRequest) (*GetProxmoxHostResponse, error)
 	GetPveInventory(context.Context, *GetPveInventoryRequest) (*GetPveInventoryResponse, error)
+	GetCloudDomain(context.Context, *GetCloudDomainRequest) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(context.Context, *GetVmVarsBlakeRequest) (*GetVmVarsBlakeResponse, error)
 	mustEmbedUnimplementedCloudServiceServer()
 }
@@ -285,6 +298,9 @@ func (UnimplementedCloudServiceServer) GetProxmoxHost(context.Context, *GetProxm
 }
 func (UnimplementedCloudServiceServer) GetPveInventory(context.Context, *GetPveInventoryRequest) (*GetPveInventoryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPveInventory not implemented")
+}
+func (UnimplementedCloudServiceServer) GetCloudDomain(context.Context, *GetCloudDomainRequest) (*GetCloudDomainResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCloudDomain not implemented")
 }
 func (UnimplementedCloudServiceServer) GetVmVarsBlake(context.Context, *GetVmVarsBlakeRequest) (*GetVmVarsBlakeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetVmVarsBlake not implemented")
@@ -562,6 +578,24 @@ func _CloudService_GetPveInventory_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudService_GetCloudDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCloudDomainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetCloudDomain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetCloudDomain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetCloudDomain(ctx, req.(*GetCloudDomainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CloudService_GetVmVarsBlake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetVmVarsBlakeRequest)
 	if err := dec(in); err != nil {
@@ -642,6 +676,10 @@ var CloudService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPveInventory",
 			Handler:    _CloudService_GetPveInventory_Handler,
+		},
+		{
+			MethodName: "GetCloudDomain",
+			Handler:    _CloudService_GetCloudDomain_Handler,
 		},
 		{
 			MethodName: "GetVmVarsBlake",

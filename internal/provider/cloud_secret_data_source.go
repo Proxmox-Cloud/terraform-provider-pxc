@@ -84,7 +84,7 @@ func (d *CloudSecretDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{TargetPve: d.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
+	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{CloudDomain: d.cloudInventory.CloudDomain, TargetPve: d.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get cloud secret, got error: %s", err))
 		return

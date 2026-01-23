@@ -19,6 +19,7 @@ service CloudService {
   rpc DeleteProxmoxApi(DeleteProxmoxApiRequest) returns (DeleteProxmoxApiResponse);
   rpc GetProxmoxHost(GetProxmoxHostRequest) returns (GetProxmoxHostResponse);
   rpc GetPveInventory(GetPveInventoryRequest) returns (GetPveInventoryResponse);
+  rpc GetCloudDomain(GetCloudDomainRequest) returns (GetCloudDomainResponse);
   rpc GetVmVarsBlake(GetVmVarsBlakeRequest) returns (GetVmVarsBlakeResponse);
 }
 
@@ -120,10 +121,11 @@ message GetCloudFileSecretResponse {
 }
 
 message CreateCloudSecretRequest {
-  string target_pve = 1;
-  string secret_name = 2;
-  string secret_data = 3;
-  string secret_type = 4;
+  string cloud_domain = 1;
+  string target_pve = 2;
+  string secret_name = 3;
+  string secret_data = 4;
+  string secret_type = 5;
 }
 
 message CreateCloudSecretResponse {
@@ -132,8 +134,9 @@ message CreateCloudSecretResponse {
 }
 
 message DeleteCloudSecretRequest {
-  string target_pve = 1;
-  string secret_name = 2;
+  string cloud_domain = 1;
+  string target_pve = 2;
+  string secret_name = 3;
 }
 
 message DeleteCloudSecretResponse {
@@ -142,8 +145,9 @@ message DeleteCloudSecretResponse {
 }
 
 message GetCloudSecretRequest {
-  string target_pve = 1;
-  string secret_name = 2;
+  string cloud_domain = 1;
+  string target_pve = 2;
+  string secret_name = 3;
 }
 
 message GetCloudSecretResponse {
@@ -151,8 +155,9 @@ message GetCloudSecretResponse {
 }
 
 message GetCloudSecretsRequest {
-  string target_pve = 1;
-  string secret_type = 2;
+  string cloud_domain = 1;
+  string target_pve = 2;
+  string secret_type = 3;
 }
 
 message GetCloudSecretsResponse {
@@ -161,9 +166,18 @@ message GetCloudSecretsResponse {
 
 message GetVmVarsBlakeRequest {
   string target_pve = 1;
-  repeated string blake_ids = 2;
+  string cloud_domain = 2;
+  repeated string blake_ids = 3;
 }
 
 message GetVmVarsBlakeResponse {
   map<string, string> blake_id_vars = 1;
+}
+
+message GetCloudDomainRequest {
+  string target_pve = 1;
+}
+
+message GetCloudDomainResponse {
+  string domain = 1;
 }

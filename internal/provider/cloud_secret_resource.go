@@ -102,7 +102,7 @@ func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// perform the request
-	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretData: data.SecretData.ValueString()})
+	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretData: data.SecretData.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp create cloud secret request, got error: %s", err))
 		return
@@ -192,7 +192,7 @@ func (r *CloudSecretResource) Delete(ctx context.Context, req resource.DeleteReq
 	defer cancel()
 
 	// perform the request
-	cresp, err := client.DeleteCloudSecret(ctx, &pb.DeleteCloudSecretRequest{TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
+	cresp, err := client.DeleteCloudSecret(ctx, &pb.DeleteCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp delete cloud secret request, got error: %s", err))
 		return
