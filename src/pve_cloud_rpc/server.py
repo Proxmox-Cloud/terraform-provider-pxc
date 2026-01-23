@@ -115,12 +115,14 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         with Session(engine) as session:
             try:
-                session.add(ProxmoxCloudSecrets(
-                    cloud_domain=cloud_domain,
-                    secret_name=secret_name,
-                    secret_data=secret_data,
-                    secret_type=secret_type
-                ))
+                session.add(
+                    ProxmoxCloudSecrets(
+                        cloud_domain=cloud_domain,
+                        secret_name=secret_name,
+                        secret_data=secret_data,
+                        secret_type=secret_type,
+                    )
+                )
                 session.commit()
 
             except IntegrityError as e:
@@ -142,7 +144,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         with Session(engine) as session:
             stmt = delete(ProxmoxCloudSecrets).where(
                 ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                ProxmoxCloudSecrets.secret_name == secret_name
+                ProxmoxCloudSecrets.secret_name == secret_name,
             )
 
             result = session.execute(stmt)
@@ -159,7 +161,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         engine = await get_engine(online_pve_host)
 
         with Session(engine) as session:
-            stmt = select(ProxmoxCloudSecrets).where(ProxmoxCloudSecrets.cloud_domain == cloud_domain and ProxmoxCloudSecrets.secret_name == secret_name)
+            stmt = select(ProxmoxCloudSecrets).where(
+                ProxmoxCloudSecrets.cloud_domain == cloud_domain
+                and ProxmoxCloudSecrets.secret_name == secret_name
+            )
             record = session.scalars(stmt).first()
 
         return cloud_pb2.GetCloudSecretResponse(secret=json.dumps(record.secret_data))
@@ -174,7 +179,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         engine = await get_engine(online_pve_host)
 
         with Session(engine) as session:
-            stmt = select(ProxmoxCloudSecrets).where(ProxmoxCloudSecrets.cloud_domain == cloud_domain, ProxmoxCloudSecrets.secret_type == secret_type)
+            stmt = select(ProxmoxCloudSecrets).where(
+                ProxmoxCloudSecrets.cloud_domain == cloud_domain,
+                ProxmoxCloudSecrets.secret_type == secret_type,
+            )
             records = session.scalars(stmt).all()
 
         return cloud_pb2.GetCloudSecretsResponse(
@@ -192,7 +200,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         engine = await get_engine(online_pve_host)
 
         with Session(engine) as session:
-            stmt = select(VirtualMachineVars).where(VirtualMachineVars.blake_id.in_(blake_ids), VirtualMachineVars.cloud_domain == cloud_domain)
+            stmt = select(VirtualMachineVars).where(
+                VirtualMachineVars.blake_id.in_(blake_ids),
+                VirtualMachineVars.cloud_domain == cloud_domain,
+            )
             records = session.scalars(stmt).all()
 
         return cloud_pb2.GetVmVarsBlakeResponse(
@@ -315,7 +326,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetCloudDomain(self, request, context):
         target_pve = request.target_pve
 
-        cloud_domain = get_cloud_domain(target_pve) 
+        cloud_domain = get_cloud_domain(target_pve)
         return cloud_pb2.GetCloudDomainResponse(domain=cloud_domain)
 
     async def GetPveInventory(self, request, context):
