@@ -3,12 +3,12 @@
 page_title: "pxc_cloud_secret Resource - pxc"
 subcategory: ""
 description: |-
-  Creates a gotify notification target in your proxmox cluster.
+  Creates a proxmox cloud secret that is saved in the clouds patroni postgres.
 ---
 
 # pxc_cloud_secret (Resource)
 
-Creates a gotify notification target in your proxmox cluster.
+Creates a proxmox cloud secret that is saved in the clouds patroni postgres.
 
 
 
