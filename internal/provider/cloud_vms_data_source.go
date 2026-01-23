@@ -115,7 +115,7 @@ func (d *CloudVmsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 	}
 
-	vcresp, err := client.GetVmVarsBlake(ctx, &pb.GetVmVarsBlakeRequest{BlakeIds: blakeIds, TargetPve: d.cloudInventory.TargetPve})
+	vcresp, err := client.GetVmVarsBlake(ctx, &pb.GetVmVarsBlakeRequest{BlakeIds: blakeIds, TargetPve: d.cloudInventory.TargetPve, CloudDomain: d.cloudInventory.CloudDomain})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make request for vm vars, got error: %s", err))
 		return
