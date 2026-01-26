@@ -123,7 +123,6 @@ func (d *CloudVmsDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// iterate again and add vars
 	for _, machine := range machines {
-		machine["niggervar"] = "fag"
 		if val, ok := machine["tags"]; ok {
 			if tagStr, isString := val.(string); isString {
 
