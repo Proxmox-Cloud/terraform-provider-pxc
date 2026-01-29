@@ -18,5 +18,5 @@ Creates a TCP graphite exporter in your proxmox cluster.
 ### Required
 
 - `exporter_name` (String) Unique name of the exporter on your proxmox cluster.
-- `port` (Number) Port of the server.
+- `port` (Number) UDP port of the server.
 - `server` (String) Server address where metrics will be send to.
