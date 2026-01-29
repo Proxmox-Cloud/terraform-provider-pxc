@@ -63,7 +63,7 @@ func (r *PveGraphiteExporterResource) Schema(ctx context.Context, req resource.S
 			},
 			"port": schema.Int64Attribute{
 				Required:            true,
-				MarkdownDescription: "Port of the server.",
+				MarkdownDescription: "UDP port of the server.",
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(), // lazy replace
 				},
@@ -109,9 +109,7 @@ func (r *PveGraphiteExporterResource) Create(ctx context.Context, req resource.C
 	createArgs := map[string]string{
 		"--server":  data.Server.ValueString(),
 		"--port":    strconv.FormatInt(int64(data.Port.ValueInt64()), 10),
-		"--type":    "graphite",
-		"--proto":   "tcp",
-		"--timeout": "3",
+		"--type":    "graphite", // default is udp
 	}
 
 	// perform the request
