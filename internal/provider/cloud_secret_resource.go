@@ -37,6 +37,7 @@ type CloudSecretResource struct {
 type CloudSecretResourceModel struct {
 	SecretName types.String `tfsdk:"secret_name"`
 	SecretData types.String `tfsdk:"secret_data"`
+	SecretType types.String `tfsdk:"secret_type"`
 }
 
 func (r *CloudSecretResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -59,6 +60,13 @@ func (r *CloudSecretResource) Schema(ctx context.Context, req resource.SchemaReq
 			"secret_data": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Secret data as json string, use jsonencode to pass your terraform object (will be converted to json on storage).",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(), // lazy replace
+				},
+			},
+			"secret_type": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Type of the secret, can be used to store configuration secrets and for discovery.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(), // lazy replace
 				},
@@ -101,8 +109,10 @@ func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
+	
+
 	// perform the request
-	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretData: data.SecretData.ValueString()})
+	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretType: data.SecretType.ValueString(), SecretData: data.SecretData.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp create cloud secret request, got error: %s", err))
 		return
