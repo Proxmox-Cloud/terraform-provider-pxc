@@ -19,3 +19,7 @@ Creates a proxmox cloud secret that is saved in the clouds patroni postgres.
 
 - `secret_data` (String) Secret data as json string, use jsonencode to pass your terraform object (will be converted to json on storage).
 - `secret_name` (String) Name of the secret, has to be unique for the target_pve.
+
+### Optional
+
+- `secret_type` (String) Type of the secret, can be used to store configuration secrets and for discovery.
