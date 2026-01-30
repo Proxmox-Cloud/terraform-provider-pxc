@@ -163,7 +163,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         with Session(engine) as session:
             stmt = select(ProxmoxCloudSecrets).where(
                 ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                ProxmoxCloudSecrets.secret_name == secret_name
+                ProxmoxCloudSecrets.secret_name == secret_name,
             )
             record = session.scalars(stmt).first()
 
