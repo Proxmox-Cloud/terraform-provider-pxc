@@ -167,6 +167,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             )
             record = session.scalars(stmt).first()
 
+        if not record:
+            return cloud_pb2.GetCloudSecretResponse()
+        
         return cloud_pb2.GetCloudSecretResponse(secret=json.dumps(record.secret_data))
 
     # fetch by type
