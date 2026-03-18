@@ -109,8 +109,6 @@ func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	
-
 	// perform the request
 	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretType: data.SecretType.ValueString(), SecretData: data.SecretData.ValueString()})
 	if err != nil {
@@ -137,6 +135,26 @@ func (r *CloudSecretResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	// Read the secret via grpc call - currently only includes idempotency for deletion
+	// ! this does not check the content of the secret !
+	client, err := GetCloudRpcService(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
+		return
+	}
+
+	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get cloud secret, got error: %s", err))
+		return
+	}
+
+	if cresp.Secret == "" {
+		// secret got deleted
+		resp.State.RemoveResource(ctx)
+        return
+	}
+	
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	// httpResp, err := r.client.Do(httpReq)
