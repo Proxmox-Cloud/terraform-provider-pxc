@@ -53,7 +53,7 @@ func (r *CloudSecretResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "Name of the secret, has to be unique for the target_pve.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(), // lazy replace
+					stringplanmodifier.RequiresReplace(), 
 				},
 			},
 			// todo: figure out terraforms absurd type system to avoid jsonencode and decode calls to pass / receive dynamic values
@@ -61,14 +61,14 @@ func (r *CloudSecretResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "Secret data as json string, use jsonencode to pass your terraform object (will be converted to json on storage).",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(), // lazy replace
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"secret_type": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Type of the secret, can be used to store configuration secrets and for discovery.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(), // lazy replace
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 		},
@@ -135,8 +135,7 @@ func (r *CloudSecretResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	// Read the secret via grpc call - currently only includes idempotency for deletion
-	// ! this does not check the content of the secret !
+	// Read the secret via grpc call
 	client, err := GetCloudRpcService(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
@@ -152,16 +151,11 @@ func (r *CloudSecretResource) Read(ctx context.Context, req resource.ReadRequest
 	if cresp.Secret == "" {
 		// secret got deleted
 		resp.State.RemoveResource(ctx)
-        return
+    return
 	}
-	
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
+
+	// todo: implement json based comparison and update
+	// WARNING this only now checks deleted and might mangle secrets defined with the same name!
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
