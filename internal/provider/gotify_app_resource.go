@@ -131,7 +131,7 @@ func (r *GotifyAppResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
-  	httpReq.SetBasicAuth("admin", data.GotifyAdminPw.ValueString())
+  httpReq.SetBasicAuth("admin", data.GotifyAdminPw.ValueString())
 
 	httpResp, err := client.Do(httpReq)
 	if err != nil {
@@ -171,13 +171,64 @@ func (r *GotifyAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: data.AllowInsecure.ValueBool()},
+		},
+	}
+
+	// get all gotify applications
+	readUrl := fmt.Sprintf("https://%s/application", data.GotifyHost.ValueString())
+
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", readUrl, nil)
+	if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create request: %s", err))
+			return
+	}
+
+	httpReq.SetBasicAuth("admin", data.GotifyAdminPw.ValueString())
+
+	httpResp, err := client.Do(httpReq)
+	if err != nil {
+			resp.Diagnostics.AddError("Request error", fmt.Sprintf("Error calling gotify: %s", err))
+			return
+	}
+	
+	defer httpResp.Body.Close()
+
+	if httpResp.StatusCode != http.StatusOK {
+			resp.Diagnostics.AddError("Server Error", fmt.Sprintf("Gotify returned status %d", httpResp.StatusCode))
+			return
+	}
+
+	bodyBytes, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError("Response error", fmt.Sprintf("Failed to read body: %s", err))
+		return
+	}
+
+	// returns list of gotify apps
+	var response []GotifyAppResponse
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+			resp.Diagnostics.AddError("JSON Error", fmt.Sprintf("Error unmarshalling: %s", err))
+	}
+
+	// try and find our app
+	var appExists bool = false
+
+	for _, app := range response {
+		if app.AppToken == data.AppToken.ValueString() && app.Id == data.AppId.ValueInt64() {
+			appExists = true // found our app
+			break
+		}
+	}
+
+	// if it doesnt exist we have to update our state
+	if !appExists {
+		resp.State.RemoveResource(ctx)
+    return
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -189,14 +240,14 @@ func (r *GotifyAppResource) Update(ctx context.Context, req resource.UpdateReque
 		"This resource does not support in-place updates. Any change to these attributes "+
 		"should have triggered a replacement. This is a provider bug.",
   )
-	var data GotifyAppResourceModel
+	// var data GotifyAppResourceModel
 
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// // Read Terraform plan data into the model
+	// resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
@@ -207,7 +258,7 @@ func (r *GotifyAppResource) Update(ctx context.Context, req resource.UpdateReque
 	// }
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *GotifyAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
