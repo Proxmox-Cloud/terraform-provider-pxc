@@ -233,10 +233,20 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 			resp.Diagnostics.AddError("Failed to start python grpc server", "Deadline exceeded")
 			return
 		}
+		// init rpc client
+		socketPath := fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid())
 
+		// if this env var is set we connect to a manually launched pve cloud rpc server
+		// for easier debugging
+		manualPid := os.Getenv("PXC_RPC_MANUAL_PID")
+		if manualPid != "" {
+			socketPath = fmt.Sprintf("unix:///tmp/pc-rpc-%s.sock", manualPid)
+		}
+		tflog.Info(ctx, socketPath)
+		
 		// try connect via grpc and health check
 		conn, err := grpc.NewClient(
-			fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid()),
+			socketPath,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		)
 		if err != nil {
