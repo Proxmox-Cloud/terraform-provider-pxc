@@ -29,4 +29,4 @@ provider "pxc" {
 
 ### Optional
 
-- `target_cluster` (String) Cluster you want to target, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv
+- `target_cluster` (String) Proxmox target cluster you want to use, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv
