@@ -59,7 +59,7 @@ func (p *PxcProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 				Required:            true,
 			},
 			"target_cluster": schema.StringAttribute{
-				MarkdownDescription: "Cluster you want to target, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv",
+				MarkdownDescription: "Proxmox target cluster you want to use, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv",
 				Optional:            true,
 			},
 		},
