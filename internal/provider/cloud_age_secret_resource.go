@@ -65,7 +65,7 @@ func (r *CloudSecretAgeResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"b64_age_data": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Insert your b64 encoded age encrypted secret here, use `age -R ~/.ssh/id_ed25519.pub -R ~/.ssh/id_rsa.pub secret.file | base64 -w0` to generate the value. Currently only supports string files.",
+				MarkdownDescription: "Insert your b64 encoded age encrypted json secret here, use `age -R ~/.ssh/id_ed25519.pub -R ~/.ssh/id_rsa.pub secret.json | base64 -w0` to generate the value. You can also use `jq -n --arg secret 'YOUR-SECRET' '{yourKey: $secret}' | age -R ~/.ssh/id_ed25519.pub -R ~/.ssh/id_rsa.pub | base64 -w0` to encrypt a secret string directly.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(), // lazy replace
 				},
@@ -158,7 +158,10 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	data.PlainData = types.StringValue(out.String())
+	// for some fucking reason calling types.StringValue is escaping our json string
+	// why the fuck this type is messing with jsonencoding when its a simple string type is beyond me
+	rawSecretString := out.String()
+	data.PlainData = types.StringValue(rawSecretString)
 
 	client, err := GetCloudRpcService(ctx)
 	if err != nil {
@@ -167,7 +170,7 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// perform the request
-	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve:r.cloudInventory.TargetPve, CloudDomain: r.cloudInventory.CloudDomain, SecretName: data.SecretName.ValueString(), SecretData: data.PlainData.String()})
+	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve:r.cloudInventory.TargetPve, CloudDomain: r.cloudInventory.CloudDomain, SecretName: data.SecretName.ValueString(), SecretData: rawSecretString})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp create cloud secret request, got error: %s", err))
 		return
@@ -191,6 +194,29 @@ func (r *CloudSecretAgeResource) Read(ctx context.Context, req resource.ReadRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Read the secret via grpc call
+	client, err := GetCloudRpcService(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to init client, got error: %s", err))
+		return
+	}
+
+	cresp, err := client.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString()})
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get cloud secret, got error: %s", err))
+		return
+	}
+
+	if cresp.Secret == "" {
+		// secret got deleted
+		resp.State.RemoveResource(ctx)
+    	return
+	}
+
+	// todo: implement json based comparison and update, or get someone who is familiar with golangs / tf insane
+	// type system. or just ditch this and move to zig
+	// WARNING this only now checks deleted and might mangle secrets defined with the same name!
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
