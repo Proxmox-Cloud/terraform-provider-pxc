@@ -110,6 +110,7 @@ func (r *CloudSecretResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// perform the request
+	// for some reason terraform here doesnt double tripple fucking escape the json string and just treats it as a string as it should (as opposed to the logic in age secret)
 	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{CloudDomain: r.cloudInventory.CloudDomain, TargetPve: r.cloudInventory.TargetPve, SecretName: data.SecretName.ValueString(), SecretType: data.SecretType.ValueString(), SecretData: data.SecretData.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp create cloud secret request, got error: %s", err))
