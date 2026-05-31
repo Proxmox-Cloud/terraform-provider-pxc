@@ -17,5 +17,6 @@ Creates a gotify notification target in your proxmox cluster.
 
 ### Required
 
+- `gotify_cloud_domain` (String) Cloud domain the gotify is hosted under, will be used for naming. This is primarily needed for multi cloud functionality.
 - `gotify_host` (String) Gotify host to connect to (e.g. gotify.example.com).
 - `gotify_token` (String) Gotify app token that proxmox uses when publishing notifications.
