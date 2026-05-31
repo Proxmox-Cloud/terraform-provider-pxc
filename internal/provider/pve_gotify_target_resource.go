@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -33,6 +34,7 @@ type PveGotifyTargetResource struct {
 type PveGotifyTargetResourceModel struct {
 	GotifyHost  types.String `tfsdk:"gotify_host"`
 	GotifyToken types.String `tfsdk:"gotify_token"`
+	GotifyCloudDomain types.String `tfsdk:"gotify_cloud_domain"`
 }
 
 func (r *PveGotifyTargetResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -56,6 +58,13 @@ func (r *PveGotifyTargetResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "Gotify app token that proxmox uses when publishing notifications.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(), // lazy replace
+				},
+			},
+			"gotify_cloud_domain": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Cloud domain the gotify is hosted under, will be used for naming. This is primarily needed for multi cloud functionality.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(), // changing host forces replace
 				},
 			},
 		},
@@ -96,8 +105,12 @@ func (r *PveGotifyTargetResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
+	// we split the cloud domain and take the hostname
+	// this should generally correspond to the clouds shortname
+	cloudDomainParts := strings.Split(data.GotifyCloudDomain.ValueString(), ".")
+
 	createArgs := map[string]string{
-		"--name":    fmt.Sprintf("gotify-%s", r.cloudInventory.StackName),
+		"--name":    fmt.Sprintf("gotify-%s", cloudDomainParts[0]),
 		"--server":  fmt.Sprintf("https://%s", data.GotifyHost.ValueString()),
 		"--token":   data.GotifyToken.ValueString(),
 		"--comment": "Proxmox cloud gotify alerts.",
@@ -117,8 +130,8 @@ func (r *PveGotifyTargetResource) Create(ctx context.Context, req resource.Creat
 
 	// create error matcher
 	createArgs = map[string]string{
-		"--name":           fmt.Sprintf("gotify-%s-matcher", r.cloudInventory.StackName),
-		"--target":         fmt.Sprintf("gotify-%s", r.cloudInventory.StackName),
+		"--name":           fmt.Sprintf("gotify-%s", cloudDomainParts[0]),
+		"--target":         fmt.Sprintf("gotify-%s", cloudDomainParts[0]),
 		"--match-severity": "error",
 	}
 	cresp, err = client.CreateProxmoxApi(ctx, &pb.CreateProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: "/cluster/notifications/matchers", CreateArgs: createArgs})
