@@ -17,7 +17,7 @@ Creates age encrypted secret in proxmox cloud. This is useful for storing hard c
 
 ### Required
 
-- `b64_age_data` (String) Insert your b64 encoded age encrypted secret here, use `age -R ~/.ssh/id_ed25519.pub -R ~/.ssh/id_rsa.pub secret.file | base64 -w0` to generate the value. Currently only supports string files.
+- `b64_age_data` (String) Insert your b64 encoded age encrypted json secret here, use `age -R ~/.ssh/id_ed25519.pub -R ~/.ssh/id_rsa.pub secret.json | base64 -w0` to generate the value. You can also use `jq -n --arg secret 'YOUR-SECRET' '{yourKey: $secret}' | age -R ~/.ssh/id_ed25519.pub -R ~/.ssh/id_rsa.pub | base64 -w0` to encrypt a secret string directly.
 - `secret_name` (String) Name of the secret, has to be unique for the target_pve.
 
 ### Read-Only
