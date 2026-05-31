@@ -130,7 +130,7 @@ func (r *PveGotifyTargetResource) Create(ctx context.Context, req resource.Creat
 
 	// create error matcher
 	createArgs = map[string]string{
-		"--name":           fmt.Sprintf("gotify-%s", cloudDomainParts[0]),
+		"--name":           fmt.Sprintf("%s-matcher", cloudDomainParts[0]),
 		"--target":         fmt.Sprintf("gotify-%s", cloudDomainParts[0]),
 		"--match-severity": "error",
 	}
