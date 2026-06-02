@@ -2,6 +2,8 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+# todo: this should be renamed to grpc something as its missleading
+# for internal true rpyc calls
 [project]
 name = "rpyc-pve-cloud"
 authors = [{ name = "Tobias Huebner", email = "tobias.huebner@vmzberlin.com" }]
