@@ -73,6 +73,7 @@ type KubesprayInventory struct {
 	// we need these two in the controller module and will return them in cloud_self data source
 	ClusterCertEntries []interface{}   `yaml:"cluster_cert_entries"`
 	ExternalDomains    []interface{} `yaml:"external_domains"`
+	ExtraControlPlaneSans []string `yaml:"extra_control_plane_sans"`
 }
 
 type PveCloudInventory struct {
@@ -199,7 +200,7 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	if pytestCurrent == "" && p.version != "dev" {
 		// package will be published to pypi with same version tag as provider
 		// todo: check against installed version and prevent from removing / missmatching
-		pipCmd := exec.Command(fmt.Sprintf("%s/bin/pip", virtualEnv), "install", fmt.Sprintf("rpyc-pve-cloud==%s", p.version))
+		pipCmd := exec.Command(fmt.Sprintf("%s/bin/pip", virtualEnv), "install", fmt.Sprintf("grpc-pve-cloud==%s", p.version))
 
 		output, err := pipCmd.CombinedOutput()
 		if err != nil {
@@ -225,6 +226,17 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		p.exitCh <- true // call finished
 	}()
 
+	// init rpc client
+	socketPath := fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid())
+
+	// if this env var is set we connect to a manually launched pve cloud rpc server
+	// for easier debugging, also set export TF_LOG=INFO
+	manualPid := os.Getenv("PXC_RPC_MANUAL_PID")
+	if manualPid != "" {
+		socketPath = fmt.Sprintf("unix:///tmp/pc-rpc-%s.sock", manualPid)
+	}
+	tflog.Info(ctx, socketPath)
+	
 	// wait for rpc to come up and healthcheck to succeed
 	deadline := time.Now().Add(10 * time.Second)
 
@@ -233,55 +245,50 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 			resp.Diagnostics.AddError("Failed to start python grpc server", "Deadline exceeded")
 			return
 		}
-		// init rpc client
-		socketPath := fmt.Sprintf("unix:///tmp/pc-rpc-%d.sock", os.Getpid())
 
-		// if this env var is set we connect to a manually launched pve cloud rpc server
-		// for easier debugging
-		manualPid := os.Getenv("PXC_RPC_MANUAL_PID")
-		if manualPid != "" {
-			socketPath = fmt.Sprintf("unix:///tmp/pc-rpc-%s.sock", manualPid)
-		}
-		tflog.Info(ctx, socketPath)
-		
 		// try connect via grpc and health check
 		conn, err := grpc.NewClient(
 			socketPath,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		)
 		if err != nil {
+			tflog.Info(ctx, fmt.Sprintf("Error starting grpc client: %s", err.Error()))
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
 		defer conn.Close()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		timeoutCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		healthClient := pb.NewHealthClient(conn)
-		hresp, err := healthClient.Check(ctx, &pb.HealthCheckRequest{TargetPve: cloudInv.TargetPve})
+		hresp, err := healthClient.Check(timeoutCtx, &pb.HealthCheckRequest{TargetPve: cloudInv.TargetPve})
 
 		if err != nil {
+			tflog.Info(ctx, fmt.Sprintf("Healthcheck errored: %s", err.Error()))
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
-
+		
 		if hresp.Status == pb.HealthCheckResponse_MISSMATCH {
-			resp.Diagnostics.AddError("Failed to start python grpc server", hresp.ErrorMessage)
+			resp.Diagnostics.AddError("Failed to start python grpc server - health error", hresp.ErrorMessage)
 			return
 		}
 
 		// this case should never hit.
 		// todo: refactor
 		if hresp.Status != pb.HealthCheckResponse_SERVING {
+			tflog.Info(ctx, "Healthcheck returned but not status serving!")
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
 
 		// its up and running, we now fetch the cloud domain and return
+		tflog.Info(ctx, "Trying to get cloud domain!")
 		cclient := pb.NewCloudServiceClient(conn)
 		cresp, err := cclient.GetCloudDomain(ctx, &pb.GetCloudDomainRequest{TargetPve: cloudInv.TargetPve})
 		if err != nil {
+			tflog.Info(ctx, "Failed to get cloud domain!")
 			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable get ceph access files, got error: %s", err))
 			return
 		}

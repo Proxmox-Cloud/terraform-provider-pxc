@@ -5,7 +5,7 @@ import warnings
 
 import pve_cloud_rpc.protos.health_pb2 as health__pb2
 
-GRPC_GENERATED_VERSION = '1.76.0'
+GRPC_GENERATED_VERSION = '1.81.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class HealthStub(object):
+class HealthStub:
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -41,7 +41,7 @@ class HealthStub(object):
                 _registered_method=True)
 
 
-class HealthServicer(object):
+class HealthServicer:
     """Missing associated documentation comment in .proto file."""
 
     def Check(self, request, context):
@@ -66,7 +66,7 @@ def add_HealthServicer_to_server(servicer, server):
 
 
  # This class is part of an EXPERIMENTAL API.
-class Health(object):
+class Health:
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod

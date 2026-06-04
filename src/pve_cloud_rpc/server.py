@@ -1,17 +1,16 @@
 import asyncio
 import json
-import socket
 import sys
-
 import asyncssh
 import grpc
 import yaml
-from pve_cloud.cli.pvclu import get_cluster_vars, get_ssh_master_kubeconfig
+from pve_cloud.cli.pvclu import get_cluster_vars, get_ssh_master_kubeconfig, get_ssh_remote_master_kubeconfig
 from pve_cloud.lib.inventory import *
 from pve_cloud.orm.alchemy import ProxmoxCloudSecrets, VirtualMachineVars
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from pve_cloud.cli.pxrpc import launch_pxrpc
 
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
@@ -25,6 +24,7 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
     # installed proxmox cloud versions
     async def Check(self, request, context):
         target_pve = request.target_pve
+
         try:
             get_online_pve_host(
                 target_pve, skip_py_cloud_check=False
@@ -59,6 +59,19 @@ async def get_engine(online_pve_host):
     return engine
 
 
+# fabric host
+def get_pg_conn_str(pve_host):
+    result = pve_host.run("cat /etc/pve/cloud/secrets/patroni.pass")
+    patroni_pass = result.stdout.rstrip()
+
+    result = pve_host.run("cat /etc/pve/cloud/cluster_vars.yaml")
+    cluster_vars = yaml.safe_load(result.stdout)
+
+    patroni_cstr = f"postgresql+psycopg2://postgres:{patroni_pass}@{cluster_vars['pve_haproxy_floating_ip_internal']}:5000/pve_cloud?sslmode=disable"
+
+    return patroni_cstr
+
+
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
     async def GetMasterKubeconfig(self, request, context):
@@ -68,17 +81,22 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         online_pve_host, jump_host = get_online_pve_host(
             target_pve, skip_py_cloud_check=True
         )
-        if jump_host:
-            context.abort(
+        if jump_host and not request.extra_control_plane_sans:
+            await context.abort(
                 grpc.StatusCode.NOT_FOUND,
-                "Get Master Kubeconfig cannot be called with jump_host yet!",
+                "For proxmox clouds accessed via proxy jumps, kubernetes cluster need to be exposed via extra_control_plane_sans + custom dns!",
             )
 
         cluster_vars = get_cluster_vars(online_pve_host)
 
-        return cloud_pb2.GetKubeconfigResponse(
-            config=get_ssh_master_kubeconfig(cluster_vars, stack_name)
-        )
+        if jump_host:
+            return cloud_pb2.GetKubeconfigResponse(
+                config=get_ssh_remote_master_kubeconfig(cluster_vars, stack_name, request.extra_control_plane_sans[0], jump_host, online_pve_host)
+            )
+        else:
+            return cloud_pb2.GetKubeconfigResponse(
+                config=get_ssh_master_kubeconfig(cluster_vars, stack_name)
+            )
 
     async def GetClusterVars(self, request, context):
         target_pve = request.target_pve
@@ -138,7 +156,17 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
         if jump_host:
             # need to execute via pxrpc on jumphost
-            pass
+            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
+                pg_conn_str = get_pg_conn_str(pve_host)
+                success = pxrpc.root.inject_cloud_secret(pg_conn_str, cloud_domain, secret_name, json.dumps(secret_data), secret_type)
+
+                if not success:
+                    return cloud_pb2.CreateCloudSecretResponse(
+                        success=False, err_message="Unknown error in pxrpc."
+                    )
+                
+                return cloud_pb2.CreateCloudSecretResponse(success=True)
+
         else:
             engine = await get_engine(online_pve_host)
 
@@ -167,39 +195,61 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_name = request.secret_name
         cloud_domain = request.cloud_domain
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
-        engine = await get_engine(online_pve_host)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
 
-        with Session(engine) as session:
-            stmt = delete(ProxmoxCloudSecrets).where(
-                ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                ProxmoxCloudSecrets.secret_name == secret_name,
-            )
+        if jump_host:
+            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
+                pg_conn_str = get_pg_conn_str(pve_host)
+                pxrpc.root.delete_cloud_secret(pg_conn_str, cloud_domain, secret_name)
 
-            result = session.execute(stmt)
-            session.commit()
+            return cloud_pb2.DeleteCloudSecretResponse(success=True)
+            
+        else:
+            engine = await get_engine(online_pve_host)
 
-        return cloud_pb2.DeleteCloudSecretResponse(success=True)
+            with Session(engine) as session:
+                stmt = delete(ProxmoxCloudSecrets).where(
+                    ProxmoxCloudSecrets.cloud_domain == cloud_domain,
+                    ProxmoxCloudSecrets.secret_name == secret_name,
+                )
+
+                result = session.execute(stmt)
+                session.commit()
+
+            return cloud_pb2.DeleteCloudSecretResponse(success=True)
 
     async def GetCloudSecret(self, request, context):
         target_pve = request.target_pve
         secret_name = request.secret_name
         cloud_domain = request.cloud_domain
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
-        engine = await get_engine(online_pve_host)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        
+        if jump_host:
+            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
+                pg_conn_str = get_pg_conn_str(pve_host)
 
-        with Session(engine) as session:
-            stmt = select(ProxmoxCloudSecrets).where(
-                ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                ProxmoxCloudSecrets.secret_name == secret_name,
-            )
-            record = session.scalars(stmt).first()
+                secret_json = pxrpc.root.get_cloud_secret(pg_conn_str, cloud_domain, secret_name)
 
-        if not record:
-            return cloud_pb2.GetCloudSecretResponse()
+                if secret_json == "":
+                    return cloud_pb2.GetCloudSecretResponse()
+                
+                return cloud_pb2.GetCloudSecretResponse(secret=secret_json)
+        
+        else:
+            engine = await get_engine(online_pve_host)
 
-        return cloud_pb2.GetCloudSecretResponse(secret=json.dumps(record.secret_data))
+            with Session(engine) as session:
+                stmt = select(ProxmoxCloudSecrets).where(
+                    ProxmoxCloudSecrets.cloud_domain == cloud_domain,
+                    ProxmoxCloudSecrets.secret_name == secret_name,
+                )
+                record = session.scalars(stmt).first()
+
+            if not record:
+                return cloud_pb2.GetCloudSecretResponse()
+
+            return cloud_pb2.GetCloudSecretResponse(secret=json.dumps(record.secret_data))
 
     # fetch by type
     async def GetCloudSecrets(self, request, context):
@@ -207,49 +257,80 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_type = request.secret_type
         cloud_domain = request.cloud_domain
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
-        engine = await get_engine(online_pve_host)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
 
-        with Session(engine) as session:
-            stmt = select(ProxmoxCloudSecrets).where(
-                ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                ProxmoxCloudSecrets.secret_type == secret_type,
-            )
-            records = session.scalars(stmt).all()
+        if jump_host:
+            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
+                pg_conn_str = get_pg_conn_str(pve_host)
 
-        return cloud_pb2.GetCloudSecretsResponse(
-            secrets=json.dumps(
-                {record.secret_name: record.secret_data for record in records}
+                secrets_json = pxrpc.root.get_cloud_secrets(pg_conn_str, cloud_domain, secret_type)
+
+            return cloud_pb2.GetCloudSecretsResponse(
+                secrets=secrets_json
+            )    
+
+        else:
+            engine = await get_engine(online_pve_host)
+
+            with Session(engine) as session:
+                stmt = select(ProxmoxCloudSecrets).where(
+                    ProxmoxCloudSecrets.cloud_domain == cloud_domain,
+                    ProxmoxCloudSecrets.secret_type == secret_type,
+                )
+                records = session.scalars(stmt).all()
+
+            return cloud_pb2.GetCloudSecretsResponse(
+                secrets=json.dumps(
+                    {record.secret_name: record.secret_data for record in records}
+                )
             )
-        )
+
 
     async def GetVmVarsBlake(self, request, context):
         blake_ids = request.blake_ids
         target_pve = request.target_pve
         cloud_domain = request.cloud_domain
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
-        engine = await get_engine(online_pve_host)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
 
-        with Session(engine) as session:
-            stmt = select(VirtualMachineVars).where(
-                VirtualMachineVars.blake_id.in_(blake_ids),
-                VirtualMachineVars.cloud_domain == cloud_domain,
+        if jump_host:
+            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
+                pg_conn_str = get_pg_conn_str(pve_host)
+
+                blake_ids_json = json.dumps(list(blake_ids))
+                return_vars = pxrpc.root.get_vm_vars_blake(pg_conn_str, blake_ids_json, cloud_domain)
+
+            return cloud_pb2.GetVmVarsBlakeResponse(
+                blake_id_vars={ blake_id: json.dumps(vm_vars) for blake_id, vm_vars in json.loads(return_vars).items() }
             )
-            records = session.scalars(stmt).all()
 
-        return cloud_pb2.GetVmVarsBlakeResponse(
-            blake_id_vars={
-                entry.blake_id: json.dumps(entry.vm_vars) for entry in records
-            }
-        )
+        else:
+            engine = await get_engine(online_pve_host)
+
+            with Session(engine) as session:
+                stmt = select(VirtualMachineVars).where(
+                    VirtualMachineVars.blake_id.in_(blake_ids),
+                    VirtualMachineVars.cloud_domain == cloud_domain,
+                )
+                records = session.scalars(stmt).all()
+
+            return cloud_pb2.GetVmVarsBlakeResponse(
+                blake_id_vars={
+                    entry.blake_id: json.dumps(entry.vm_vars) for entry in records
+                }
+            )
 
     async def GetCephAccess(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+
+        jc = None
+        if jump_host:
+            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+
         async with asyncssh.connect(
-            online_pve_host, username="root", known_hosts=None
+            online_pve_host, username="root", known_hosts=None, tunnel=jc
         ) as conn:
             cmd = await conn.run(f"cat /etc/ceph/ceph.conf", check=True)
             catted_conf = cmd.stdout
@@ -259,6 +340,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             )
             catted_keyring = cmd.stdout
 
+        if jc:
+            jc.close()
+            await jc.wait_closed()
+
         return cloud_pb2.GetCephAccessResponse(
             ceph_conf=catted_conf, admin_keyring=catted_keyring
         )
@@ -266,9 +351,14 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetSshKey(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+
+        jc = None
+        if jump_host:
+            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+
         async with asyncssh.connect(
-            online_pve_host, username="root", known_hosts=None
+            online_pve_host, username="root", known_hosts=None, tunnel=jc
         ) as conn:
             match request.key_type:
                 case cloud_pb2.GetSshKeyRequest.PVE_HOST_RSA:
@@ -280,14 +370,23 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     )
                     catted_key = cmd.stdout
 
+        if jc:
+            jc.close()
+            await jc.wait_closed()
+
         return cloud_pb2.GetSshKeyResponse(key=catted_key)
 
     async def GetProxmoxApi(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+
+        jc = None
+        if jump_host:
+            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+
         async with asyncssh.connect(
-            online_pve_host, username="root", known_hosts=None
+            online_pve_host, username="root", known_hosts=None, tunnel=jc
         ) as conn:
             args_string = None
             if request.get_args:
@@ -301,14 +400,23 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             )
             resp_json = cmd.stdout
 
+        if jc:
+            jc.close()
+            await jc.wait_closed()
+
         return cloud_pb2.GetProxmoxApiResponse(json_resp=resp_json)
 
     async def CreateProxmoxApi(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+
+        jc = None
+        if jump_host:
+            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+
         async with asyncssh.connect(
-            online_pve_host, username="root", known_hosts=None
+            online_pve_host, username="root", known_hosts=None, tunnel=jc
         ) as conn:
             args_string = None
             if request.create_args:
@@ -327,14 +435,23 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     success=False, err_message=f"Exit code {e.exit_status} - {e.stderr}"
                 )
 
+        if jc:
+            jc.close()
+            await jc.wait_closed()
+
         return cloud_pb2.CreateProxmoxApiResponse(success=True)
 
     async def DeleteProxmoxApi(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+
+        jc = None
+        if jump_host:
+            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+
         async with asyncssh.connect(
-            online_pve_host, username="root", known_hosts=None
+            online_pve_host, username="root", known_hosts=None, tunnel=jc
         ) as conn:
             try:
                 cmd = await conn.run(
@@ -347,11 +464,15 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     success=False, err_message=f"Exit code {e.exit_status} - {e.stderr}"
                 )
 
+        if jc:
+            jc.close()
+            await jc.wait_closed()
+
         return cloud_pb2.DeleteProxmoxApiResponse(success=True)
 
     async def GetProxmoxHost(self, request, context):
         target_pve = request.target_pve
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
 
         return cloud_pb2.GetProxmoxHostResponse(pve_host=online_pve_host)
 
@@ -359,6 +480,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
 
         cloud_domain = get_cloud_domain(target_pve)
+
         return cloud_pb2.GetCloudDomainResponse(domain=cloud_domain)
 
     async def GetPveInventory(self, request, context):
@@ -370,16 +492,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         return cloud_pb2.GetPveInventoryResponse(
             inventory=yaml.safe_dump(pve_inventory), cloud_domain=cloud_domain
         )
-
-
-def is_port_bound(port, host="0.0.0.0"):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            s.bind((host, port))
-            return False  # not bound
-        except OSError:
-            return True  # bound
 
 
 async def serve():

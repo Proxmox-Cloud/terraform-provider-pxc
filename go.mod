@@ -3,6 +3,7 @@ module github.com/Proxmox-Cloud/terraform-provider-pxc
 go 1.24.0
 
 require (
+	filippo.io/age v1.3.1
 	github.com/hashicorp/terraform-plugin-framework v1.17.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-log v0.10.0
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	filippo.io/age v1.3.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	filippo.io/hpke v0.4.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect

@@ -764,11 +764,12 @@ func (x *GetCephAccessResponse) GetAdminKeyring() string {
 }
 
 type GetKubeconfigRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
-	StackName     string                 `protobuf:"bytes,2,opt,name=stack_name,json=stackName,proto3" json:"stack_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve             string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	StackName             string                 `protobuf:"bytes,2,opt,name=stack_name,json=stackName,proto3" json:"stack_name,omitempty"`
+	ExtraControlPlaneSans []string               `protobuf:"bytes,3,rep,name=extra_control_plane_sans,json=extraControlPlaneSans,proto3" json:"extra_control_plane_sans,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *GetKubeconfigRequest) Reset() {
@@ -813,6 +814,13 @@ func (x *GetKubeconfigRequest) GetStackName() string {
 		return x.StackName
 	}
 	return ""
+}
+
+func (x *GetKubeconfigRequest) GetExtraControlPlaneSans() []string {
+	if x != nil {
+		return x.ExtraControlPlaneSans
+	}
+	return nil
 }
 
 type GetKubeconfigResponse struct {
@@ -1753,12 +1761,13 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"target_pve\x18\x01 \x01(\tR\ttargetPve\"Y\n" +
 	"\x15GetCephAccessResponse\x12\x1b\n" +
 	"\tceph_conf\x18\x01 \x01(\tR\bcephConf\x12#\n" +
-	"\radmin_keyring\x18\x02 \x01(\tR\fadminKeyring\"T\n" +
+	"\radmin_keyring\x18\x02 \x01(\tR\fadminKeyring\"\x8d\x01\n" +
 	"\x14GetKubeconfigRequest\x12\x1d\n" +
 	"\n" +
 	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x1d\n" +
 	"\n" +
-	"stack_name\x18\x02 \x01(\tR\tstackName\"/\n" +
+	"stack_name\x18\x02 \x01(\tR\tstackName\x127\n" +
+	"\x18extra_control_plane_sans\x18\x03 \x03(\tR\x15extraControlPlaneSans\"/\n" +
 	"\x15GetKubeconfigResponse\x12\x16\n" +
 	"\x06config\x18\x01 \x01(\tR\x06config\"6\n" +
 	"\x15GetClusterVarsRequest\x12\x1d\n" +

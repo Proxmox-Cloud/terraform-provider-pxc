@@ -81,7 +81,7 @@ func (r *KubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral.Op
 	}
 
 	// perform the request
-	cresp, err := client.GetMasterKubeconfig(ctx, &pb.GetKubeconfigRequest{TargetPve: r.cloudInventory.TargetPve, StackName: r.cloudInventory.StackName})
+	cresp, err := client.GetMasterKubeconfig(ctx, &pb.GetKubeconfigRequest{TargetPve: r.cloudInventory.TargetPve, StackName: r.cloudInventory.StackName, ExtraControlPlaneSans: r.cloudInventory.KubesprayInventory.ExtraControlPlaneSans})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get kubeconfig, got error: %s", err))
 		return

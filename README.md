@@ -10,7 +10,7 @@ This repository contains the terraform provider connecting to proxmox cloud inst
 
 ```bash
 # python proto files
-pip install grpcio-tools-1.76.0
+pip install grpcio-tools==1.81.0
 
 python -m grpc_tools.protoc -I./protos --python_out=./src/pve_cloud_rpc/protos --grpc_python_out=./src/pve_cloud_rpc/protos ./protos/*.proto
 sed -i 's|import cloud_pb2|import pve_cloud_rpc.protos.cloud_pb2|g' src/pve_cloud_rpc/protos/cloud_pb2_grpc.py
@@ -18,8 +18,8 @@ sed -i 's|import health_pb2|import pve_cloud_rpc.protos.health_pb2|g' src/pve_cl
 
 # golang proto files 
 # need protocompiler 3 (installed via apt)
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
 
 export PATH="$PATH:$(go env GOPATH)/bin"
 protoc --go_out=./internal/provider --go_opt=paths=source_relative \

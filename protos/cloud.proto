@@ -96,6 +96,7 @@ message GetCephAccessResponse {
 message GetKubeconfigRequest {
   string target_pve = 1;
   string stack_name = 2;
+  repeated string extra_control_plane_sans = 3;
 }
 
 message GetKubeconfigResponse {
