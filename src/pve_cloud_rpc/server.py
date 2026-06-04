@@ -65,9 +65,14 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
         stack_name = request.stack_name
 
-        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(
+            target_pve, skip_py_cloud_check=True
+        )
         if jump_host:
-            context.abort(grpc.StatusCode.NOT_FOUND, "Get Master Kubeconfig cannot be called with jump_host yet!")
+            context.abort(
+                grpc.StatusCode.NOT_FOUND,
+                "Get Master Kubeconfig cannot be called with jump_host yet!",
+            )
 
         cluster_vars = get_cluster_vars(online_pve_host)
 
@@ -78,7 +83,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetClusterVars(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(
+            target_pve, skip_py_cloud_check=True
+        )
         cluster_vars = get_cluster_vars(online_pve_host, jump_host)
 
         return cloud_pb2.GetClusterVarsResponse(vars=yaml.safe_dump(cluster_vars))
@@ -89,14 +96,14 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
         secret_name = request.secret_name
 
-        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(
+            target_pve, skip_py_cloud_check=True
+        )
 
         # go through jump host if defined
         jc = None
         if jump_host:
-            jc = await asyncssh.connect(
-                jump_host, username="root", known_hosts=None
-            )
+            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -126,10 +133,12 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_data = json.loads(request.secret_data)
         secret_type = request.secret_type
 
-        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(
+            target_pve, skip_py_cloud_check=True
+        )
         if jump_host:
             # need to execute via pxrpc on jumphost
-            pass 
+            pass
         else:
             engine = await get_engine(online_pve_host)
 
