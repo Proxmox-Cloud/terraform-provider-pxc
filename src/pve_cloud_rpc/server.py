@@ -65,7 +65,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
         stack_name = request.stack_name
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        if jump_host:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Get Master Kubeconfig cannot be called with jump_host yet!")
+
         cluster_vars = get_cluster_vars(online_pve_host)
 
         return cloud_pb2.GetKubeconfigResponse(
@@ -75,8 +78,8 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetClusterVars(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
-        cluster_vars = get_cluster_vars(online_pve_host)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        cluster_vars = get_cluster_vars(online_pve_host, jump_host)
 
         return cloud_pb2.GetClusterVarsResponse(vars=yaml.safe_dump(cluster_vars))
 
@@ -86,9 +89,17 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
         secret_name = request.secret_name
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+
+        # go through jump host if defined
+        jc = None
+        if jump_host:
+            jc = await asyncssh.connect(
+                jump_host, username="root", known_hosts=None
+            )
+
         async with asyncssh.connect(
-            online_pve_host, username="root", known_hosts=None
+            online_pve_host, username="root", known_hosts=None, tunnel=jc
         ) as conn:
             cmd = await conn.run(
                 f"cat /etc/pve/cloud/secrets/{secret_name}", check=True
@@ -100,6 +111,11 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             ):  # defaults to true but in special cases user might want to keep newlines (e.g. certs)
                 catted_secret = catted_secret.rstrip()
 
+        # close the jumphost if it was defined
+        if jc:
+            jc.close()
+            await jc.wait_closed()
+
         return cloud_pb2.GetCloudFileSecretResponse(secret=catted_secret)
 
     # non file proxmox cloud secrets are stored in the patroni database
@@ -110,28 +126,32 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_data = json.loads(request.secret_data)
         secret_type = request.secret_type
 
-        online_pve_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
-        engine = await get_engine(online_pve_host)
+        online_pve_host, jump_host = get_online_pve_host(target_pve, skip_py_cloud_check=True)
+        if jump_host:
+            # need to execute via pxrpc on jumphost
+            pass 
+        else:
+            engine = await get_engine(online_pve_host)
 
-        with Session(engine) as session:
-            try:
-                session.add(
-                    ProxmoxCloudSecrets(
-                        cloud_domain=cloud_domain,
-                        secret_name=secret_name,
-                        secret_data=secret_data,
-                        secret_type=secret_type,
+            with Session(engine) as session:
+                try:
+                    session.add(
+                        ProxmoxCloudSecrets(
+                            cloud_domain=cloud_domain,
+                            secret_name=secret_name,
+                            secret_data=secret_data,
+                            secret_type=secret_type,
+                        )
                     )
-                )
-                session.commit()
+                    session.commit()
 
-            except IntegrityError as e:
-                session.rollback()
-                return cloud_pb2.CreateCloudSecretResponse(
-                    success=False, err_message=str(e)
-                )
+                except IntegrityError as e:
+                    session.rollback()
+                    return cloud_pb2.CreateCloudSecretResponse(
+                        success=False, err_message=str(e)
+                    )
 
-        return cloud_pb2.CreateCloudSecretResponse(success=True)
+            return cloud_pb2.CreateCloudSecretResponse(success=True)
 
     async def DeleteCloudSecret(self, request, context):
         target_pve = request.target_pve
