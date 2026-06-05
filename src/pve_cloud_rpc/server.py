@@ -1,6 +1,7 @@
 import asyncio
 import json
 import sys
+from contextlib import AsyncExitStack
 
 import asyncssh
 import grpc
@@ -18,7 +19,6 @@ import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
 import pve_cloud_rpc.protos.health_pb2 as health_pb2
 import pve_cloud_rpc.protos.health_pb2_grpc as health_pb2_grpc
-from contextlib import AsyncExitStack
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
@@ -78,8 +78,8 @@ def get_pg_conn_str(pve_host):
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
     def __init__(self):
-        self._stack = AsyncExitStack() # here we dump all our pxrpc connections
-        self.pxrpcs = {} # map to reuse pxrpc connections
+        self._stack = AsyncExitStack()  # here we dump all our pxrpc connections
+        self.pxrpcs = {}  # map to reuse pxrpc connections
 
     # with this we reuse our pxrpc instances
     async def get_pxrpc(self, online_pve_host, jump_host):
@@ -90,16 +90,14 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             self.pxrpcs[pxrpc_id] = await self._stack.enter_async_context(
                 launch_pxrpc_async(jump_host, online_pve_host)
             )
-        
+
         pxrpc, pve_host = self.pxrpcs[pxrpc_id]
 
         return pxrpc, pve_host
 
-
     # close the pxrpc connection(s)
     async def shutdown(self):
         await self._stack.aclose()
-
 
     async def GetMasterKubeconfig(self, request, context):
         target_pve = request.target_pve
