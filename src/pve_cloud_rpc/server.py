@@ -7,7 +7,7 @@ import grpc
 import yaml
 from pve_cloud.cli.pvclu import (get_cluster_vars, get_ssh_master_kubeconfig,
                                  get_ssh_remote_master_kubeconfig)
-from pve_cloud.cli.pxrpc import launch_pxrpc
+from pve_cloud.cli.pxrpc import launch_pxrpc_async
 from pve_cloud.lib.inventory import *
 from pve_cloud.orm.alchemy import ProxmoxCloudSecrets, VirtualMachineVars
 from sqlalchemy import create_engine, delete, select
@@ -18,6 +18,7 @@ import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
 import pve_cloud_rpc.protos.health_pb2 as health_pb2
 import pve_cloud_rpc.protos.health_pb2_grpc as health_pb2_grpc
+from contextlib import AsyncExitStack
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
@@ -75,6 +76,30 @@ def get_pg_conn_str(pve_host):
 
 
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
+
+    def __init__(self):
+        self._stack = AsyncExitStack() # here we dump all our pxrpc connections
+        self.pxrpcs = {} # map to reuse pxrpc connections
+
+    # with this we reuse our pxrpc instances
+    async def get_pxrpc(self, online_pve_host, jump_host):
+        pxrpc_id = f"{online_pve_host}-{jump_host}"
+
+        if pxrpc_id not in self.pxrpcs:
+            print(f"launching new pxrpc server {online_pve_host}, {jump_host}")
+            self.pxrpcs[pxrpc_id] = await self._stack.enter_async_context(
+                launch_pxrpc_async(jump_host, online_pve_host)
+            )
+        
+        pxrpc, pve_host = self.pxrpcs[pxrpc_id]
+
+        return pxrpc, pve_host
+
+
+    # close the pxrpc connection(s)
+    async def shutdown(self):
+        await self._stack.aclose()
+
 
     async def GetMasterKubeconfig(self, request, context):
         target_pve = request.target_pve
@@ -164,22 +189,23 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
         if jump_host:
             # need to execute via pxrpc on jumphost
-            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
-                pg_conn_str = get_pg_conn_str(pve_host)
-                success = pxrpc.root.inject_cloud_secret(
-                    pg_conn_str,
-                    cloud_domain,
-                    secret_name,
-                    json.dumps(secret_data),
-                    secret_type,
+            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
+
+            pg_conn_str = get_pg_conn_str(pve_host)
+            success = await pxrpc.inject_cloud_secret(
+                pg_conn_str,
+                cloud_domain,
+                secret_name,
+                json.dumps(secret_data),
+                secret_type,
+            )
+
+            if not success:
+                return cloud_pb2.CreateCloudSecretResponse(
+                    success=False, err_message="Unknown error in pxrpc."
                 )
 
-                if not success:
-                    return cloud_pb2.CreateCloudSecretResponse(
-                        success=False, err_message="Unknown error in pxrpc."
-                    )
-
-                return cloud_pb2.CreateCloudSecretResponse(success=True)
+            return cloud_pb2.CreateCloudSecretResponse(success=True)
 
         else:
             engine = await get_engine(online_pve_host)
@@ -214,9 +240,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
-                pg_conn_str = get_pg_conn_str(pve_host)
-                pxrpc.root.delete_cloud_secret(pg_conn_str, cloud_domain, secret_name)
+            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
+
+            pg_conn_str = get_pg_conn_str(pve_host)
+            await pxrpc.delete_cloud_secret(pg_conn_str, cloud_domain, secret_name)
 
             return cloud_pb2.DeleteCloudSecretResponse(success=True)
 
@@ -244,17 +271,18 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
-                pg_conn_str = get_pg_conn_str(pve_host)
+            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
 
-                secret_json = pxrpc.root.get_cloud_secret(
-                    pg_conn_str, cloud_domain, secret_name
-                )
+            pg_conn_str = get_pg_conn_str(pve_host)
 
-                if secret_json == "":
-                    return cloud_pb2.GetCloudSecretResponse()
+            secret_json = await pxrpc.get_cloud_secret(
+                pg_conn_str, cloud_domain, secret_name
+            )
 
-                return cloud_pb2.GetCloudSecretResponse(secret=secret_json)
+            if secret_json == "":
+                return cloud_pb2.GetCloudSecretResponse()
+
+            return cloud_pb2.GetCloudSecretResponse(secret=secret_json)
 
         else:
             engine = await get_engine(online_pve_host)
@@ -284,12 +312,13 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
-                pg_conn_str = get_pg_conn_str(pve_host)
+            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
 
-                secrets_json = pxrpc.root.get_cloud_secrets(
-                    pg_conn_str, cloud_domain, secret_type
-                )
+            pg_conn_str = get_pg_conn_str(pve_host)
+
+            secrets_json = await pxrpc.get_cloud_secrets(
+                pg_conn_str, cloud_domain, secret_type
+            )
 
             return cloud_pb2.GetCloudSecretsResponse(secrets=secrets_json)
 
@@ -319,13 +348,14 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            with launch_pxrpc(jump_host, online_pve_host) as (pxrpc, pve_host):
-                pg_conn_str = get_pg_conn_str(pve_host)
+            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
 
-                blake_ids_json = json.dumps(list(blake_ids))
-                return_vars = pxrpc.root.get_vm_vars_blake(
-                    pg_conn_str, blake_ids_json, cloud_domain
-                )
+            pg_conn_str = get_pg_conn_str(pve_host)
+
+            blake_ids_json = json.dumps(list(blake_ids))
+            return_vars = await pxrpc.get_vm_vars_blake(
+                pg_conn_str, blake_ids_json, cloud_domain
+            )
 
             return cloud_pb2.GetVmVarsBlakeResponse(
                 blake_id_vars={
@@ -538,7 +568,8 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
 async def serve():
     server = grpc.aio.server()
-    cloud_pb2_grpc.add_CloudServiceServicer_to_server(CloudServiceServicer(), server)
+    servicer = CloudServiceServicer()
+    cloud_pb2_grpc.add_CloudServiceServicer_to_server(servicer, server)
 
     health_servicer = HealthServicer()
     health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)
@@ -546,13 +577,14 @@ async def serve():
     socket_file = f"/tmp/pc-rpc-{sys.argv[1]}.sock"
 
     server.add_insecure_port(f"unix://{socket_file}")
-    await server.start()
-
-    print(f"gRPC AsyncIO server running on {socket_file}")
     try:
+        await server.start()
+        print(f"gRPC AsyncIO server running on {socket_file}")
+
         await server.wait_for_termination()
     finally:
         # Ensure cleanup
+        await servicer.shutdown()
         await server.stop(grace=0)
         print("gRPC server stopped and port released.")
 
