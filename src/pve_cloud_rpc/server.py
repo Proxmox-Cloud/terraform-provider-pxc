@@ -6,10 +6,11 @@ from contextlib import AsyncExitStack
 import asyncssh
 import grpc
 import yaml
-from pve_cloud.cli.pvclu import (get_cluster_vars, get_ssh_master_kubeconfig,
+import os
+from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
                                  get_ssh_remote_master_kubeconfig)
 from pve_cloud.cli.pxrpc import launch_pxrpc_async
-from pve_cloud.lib.inventory import *
+from pve_cloud.lib.inventory import get_cluster_vars, get_online_pve_host_from_target_pve, get_cloud_domain, get_pve_inventory
 from pve_cloud.orm.alchemy import ProxmoxCloudSecrets, VirtualMachineVars
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import IntegrityError
@@ -29,7 +30,7 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
         target_pve = request.target_pve
 
         try:
-            get_online_pve_host(
+            get_online_pve_host_from_target_pve(
                 target_pve, skip_py_cloud_check=False
             )  # actually perform the check
             return health_pb2.HealthCheckResponse(
@@ -103,7 +104,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
         stack_name = request.stack_name
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
         if jump_host and not request.extra_control_plane_sans:
@@ -112,12 +113,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                 "For proxmox clouds accessed via proxy jumps, kubernetes cluster need to be exposed via extra_control_plane_sans + custom dns!",
             )
 
-        cluster_vars = get_cluster_vars(online_pve_host)
-
         if jump_host:
             return cloud_pb2.GetKubeconfigResponse(
                 config=get_ssh_remote_master_kubeconfig(
-                    cluster_vars,
                     stack_name,
                     request.extra_control_plane_sans[0],
                     jump_host,
@@ -125,6 +123,8 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                 )
             )
         else:
+            cluster_vars = get_cluster_vars(online_pve_host)
+
             return cloud_pb2.GetKubeconfigResponse(
                 config=get_ssh_master_kubeconfig(cluster_vars, stack_name)
             )
@@ -132,7 +132,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetClusterVars(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
         cluster_vars = get_cluster_vars(online_pve_host, jump_host)
@@ -145,7 +145,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
         secret_name = request.secret_name
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -182,7 +182,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_data = json.loads(request.secret_data)
         secret_type = request.secret_type
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
         if jump_host:
@@ -233,7 +233,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_name = request.secret_name
         cloud_domain = request.cloud_domain
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -264,7 +264,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_name = request.secret_name
         cloud_domain = request.cloud_domain
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -305,7 +305,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secret_type = request.secret_type
         cloud_domain = request.cloud_domain
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -341,7 +341,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         target_pve = request.target_pve
         cloud_domain = request.cloud_domain
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -381,7 +381,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetCephAccess(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -411,7 +411,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetSshKey(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -441,7 +441,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def GetProxmoxApi(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -473,7 +473,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def CreateProxmoxApi(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -510,7 +510,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     async def DeleteProxmoxApi(self, request, context):
         target_pve = request.target_pve
 
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
@@ -540,7 +540,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
     async def GetProxmoxHost(self, request, context):
         target_pve = request.target_pve
-        online_pve_host, jump_host = get_online_pve_host(
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
 
