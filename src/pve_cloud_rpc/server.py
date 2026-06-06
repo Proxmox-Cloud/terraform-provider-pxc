@@ -1,16 +1,18 @@
 import asyncio
 import json
+import os
 import sys
 from contextlib import AsyncExitStack
 
 import asyncssh
 import grpc
 import yaml
-import os
 from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
                                  get_ssh_remote_master_kubeconfig)
 from pve_cloud.cli.pxrpc import launch_pxrpc_async
-from pve_cloud.lib.inventory import get_cluster_vars, get_online_pve_host_from_target_pve, get_cloud_domain, get_pve_inventory
+from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
+                                     get_online_pve_host_from_target_pve,
+                                     get_pve_inventory)
 from pve_cloud.orm.alchemy import ProxmoxCloudSecrets, VirtualMachineVars
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import IntegrityError
