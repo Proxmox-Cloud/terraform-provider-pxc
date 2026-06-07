@@ -209,10 +209,24 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		}
 	}
 
+	// grpc python server log file
+	logPath := fmt.Sprintf("/tmp/pcrpc-%d.log",  os.Getpid())
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0664)
+	if err != nil {
+		tflog.Info(ctx, fmt.Sprintf("Error opening logfile: %s", err.Error()))
+		return
+	}	
 	// start pyhon grpc server as daemon
 	tflog.Info(ctx, fmt.Sprintf("Launching python rpc server on unix:///tmp/pc-rpc-%d.sock", os.Getpid()))
 	cmd := exec.Command(fmt.Sprintf("%s/bin/pcrpc", virtualEnv), strconv.Itoa(os.Getpid()))
+	
+	// set log pipes
+	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
+    cmd.Stdout = logFile
+    cmd.Stderr = logFile
+	
 	if err := cmd.Start(); err != nil {
+		logFile.Close()
 		resp.Diagnostics.AddError("Failed to start Python backend", err.Error())
 		return
 	}
