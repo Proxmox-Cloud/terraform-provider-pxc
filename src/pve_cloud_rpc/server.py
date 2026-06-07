@@ -17,6 +17,7 @@ from pve_cloud.orm.alchemy import ProxmoxCloudSecrets, VirtualMachineVars
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
 
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
@@ -154,7 +155,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         # go through jump host if defined
         jc = None
         if jump_host:
-            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+            jc = get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -389,7 +390,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+            jc = get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -419,7 +420,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+            jc = get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -449,7 +450,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+            jc = get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -481,7 +482,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+            jc = get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -518,7 +519,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = await asyncssh.connect(jump_host, username="root", known_hosts=None)
+            jc = get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -567,6 +568,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
 
 async def serve():
+    # patch the current asyncio loop to allow pxc async ssh calls
+    asyncio.get_running_loop()._pxc_ssh_managed = True
+
     server = grpc.aio.server()
     servicer = CloudServiceServicer()
     cloud_pb2_grpc.add_CloudServiceServicer_to_server(servicer, server)
@@ -587,6 +591,9 @@ async def serve():
         await servicer.shutdown()
         await server.stop(grace=0)
         print("gRPC server stopped and port released.")
+
+        # call pxc cleanup functions
+        await cleanup_jumphosts_async()
 
         # delete unix socket file
         if os.path.exists(socket_file):
