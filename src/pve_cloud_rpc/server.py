@@ -170,10 +170,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             ):  # defaults to true but in special cases user might want to keep newlines (e.g. certs)
                 catted_secret = catted_secret.rstrip()
 
-        # close the jumphost if it was defined
-        if jc:
-            jc.close()
-            await jc.wait_closed()
 
         return cloud_pb2.GetCloudFileSecretResponse(secret=catted_secret)
 
@@ -403,9 +399,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             )
             catted_keyring = cmd.stdout
 
-        if jc:
-            jc.close()
-            await jc.wait_closed()
 
         return cloud_pb2.GetCephAccessResponse(
             ceph_conf=catted_conf, admin_keyring=catted_keyring
@@ -435,9 +428,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     )
                     catted_key = cmd.stdout
 
-        if jc:
-            jc.close()
-            await jc.wait_closed()
 
         return cloud_pb2.GetSshKeyResponse(key=catted_key)
 
@@ -467,9 +457,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             )
             resp_json = cmd.stdout
 
-        if jc:
-            jc.close()
-            await jc.wait_closed()
 
         return cloud_pb2.GetProxmoxApiResponse(json_resp=resp_json)
 
@@ -504,9 +491,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     success=False, err_message=f"Exit code {e.exit_status} - {e.stderr}"
                 )
 
-        if jc:
-            jc.close()
-            await jc.wait_closed()
 
         return cloud_pb2.CreateProxmoxApiResponse(success=True)
 
@@ -535,9 +519,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     success=False, err_message=f"Exit code {e.exit_status} - {e.stderr}"
                 )
 
-        if jc:
-            jc.close()
-            await jc.wait_closed()
 
         return cloud_pb2.DeleteProxmoxApiResponse(success=True)
 

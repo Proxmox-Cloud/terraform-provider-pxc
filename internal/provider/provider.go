@@ -256,7 +256,7 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 
 	for {
 		if time.Now().After(deadline) {
-			resp.Diagnostics.AddError("Failed to start python grpc server", "Deadline exceeded")
+			resp.Diagnostics.AddError(fmt.Sprintf("Failed to start python grpc server for source pid %d", os.Getpid()), "Deadline exceeded")
 			return
 		}
 
