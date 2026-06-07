@@ -114,6 +114,11 @@ class CloudServiceStub:
                 request_serializer=cloud__pb2.GetVmVarsBlakeRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetVmVarsBlakeResponse.FromString,
                 _registered_method=True)
+        self.GetDnsARecordSet = channel.unary_unary(
+                '/protos.CloudService/GetDnsARecordSet',
+                request_serializer=cloud__pb2.GetDnsARecordSetRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetDnsARecordSetResponse.FromString,
+                _registered_method=True)
 
 
 class CloudServiceServicer:
@@ -215,6 +220,12 @@ class CloudServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetDnsARecordSet(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CloudServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -297,6 +308,11 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     servicer.GetVmVarsBlake,
                     request_deserializer=cloud__pb2.GetVmVarsBlakeRequest.FromString,
                     response_serializer=cloud__pb2.GetVmVarsBlakeResponse.SerializeToString,
+            ),
+            'GetDnsARecordSet': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDnsARecordSet,
+                    request_deserializer=cloud__pb2.GetDnsARecordSetRequest.FromString,
+                    response_serializer=cloud__pb2.GetDnsARecordSetResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -731,6 +747,33 @@ class CloudService:
             '/protos.CloudService/GetVmVarsBlake',
             cloud__pb2.GetVmVarsBlakeRequest.SerializeToString,
             cloud__pb2.GetVmVarsBlakeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDnsARecordSet(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetDnsARecordSet',
+            cloud__pb2.GetDnsARecordSetRequest.SerializeToString,
+            cloud__pb2.GetDnsARecordSetResponse.FromString,
             options,
             channel_credentials,
             insecure,
