@@ -66,19 +66,6 @@ async def get_engine(online_pve_host):
     return engine
 
 
-# fabric host
-def get_pg_conn_str(pve_host):
-    result = pve_host.run("cat /etc/pve/cloud/secrets/patroni.pass")
-    patroni_pass = result.stdout.rstrip()
-
-    result = pve_host.run("cat /etc/pve/cloud/cluster_vars.yaml")
-    cluster_vars = yaml.safe_load(result.stdout)
-
-    patroni_cstr = f"postgresql+psycopg2://postgres:{patroni_pass}@{cluster_vars['pve_haproxy_floating_ip_internal']}:5000/pve_cloud?sslmode=disable"
-
-    return patroni_cstr
-
-
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
     def __init__(self):
@@ -95,9 +82,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                 launch_pxrpc_async(jump_host, online_pve_host)
             )
 
-        pxrpc, pve_host = self.pxrpcs[pxrpc_id]
-
-        return pxrpc, pve_host
+        return self.pxrpcs[pxrpc_id]
 
     # close the pxrpc connection(s)
     async def shutdown(self):
@@ -185,11 +170,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
         if jump_host:
             # need to execute via pxrpc on jumphost
-            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
+            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            pg_conn_str = get_pg_conn_str(pve_host)
             success = await pxrpc.inject_cloud_secret(
-                pg_conn_str,
                 cloud_domain,
                 secret_name,
                 json.dumps(secret_data),
@@ -236,10 +219,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
+            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            pg_conn_str = get_pg_conn_str(pve_host)
-            await pxrpc.delete_cloud_secret(pg_conn_str, cloud_domain, secret_name)
+            await pxrpc.delete_cloud_secret(cloud_domain, secret_name)
 
             return cloud_pb2.DeleteCloudSecretResponse(success=True)
 
@@ -267,13 +249,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
+            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            pg_conn_str = get_pg_conn_str(pve_host)
-
-            secret_json = await pxrpc.get_cloud_secret(
-                pg_conn_str, cloud_domain, secret_name
-            )
+            secret_json = await pxrpc.get_cloud_secret(cloud_domain, secret_name)
 
             if secret_json == "":
                 return cloud_pb2.GetCloudSecretResponse()
@@ -308,13 +286,9 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
+            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            pg_conn_str = get_pg_conn_str(pve_host)
-
-            secrets_json = await pxrpc.get_cloud_secrets(
-                pg_conn_str, cloud_domain, secret_type
-            )
+            secrets_json = await pxrpc.get_cloud_secrets(cloud_domain, secret_type)
 
             return cloud_pb2.GetCloudSecretsResponse(secrets=secrets_json)
 
@@ -344,14 +318,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         if jump_host:
-            pxrpc, pve_host = await self.get_pxrpc(online_pve_host, jump_host)
-
-            pg_conn_str = get_pg_conn_str(pve_host)
+            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
             blake_ids_json = json.dumps(list(blake_ids))
-            return_vars = await pxrpc.get_vm_vars_blake(
-                pg_conn_str, blake_ids_json, cloud_domain
-            )
+            return_vars = await pxrpc.get_vm_vars_blake(blake_ids_json, cloud_domain)
 
             return cloud_pb2.GetVmVarsBlakeResponse(
                 blake_id_vars={
