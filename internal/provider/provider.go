@@ -348,6 +348,7 @@ func (p *PxcProvider) DataSources(ctx context.Context) []func() datasource.DataS
 		NewCloudSecretDataSource,
 		NewCloudSecretsDataSource,
 		NewCloudVmsDataSource,
+		NewDnsARecordSetSource,
 	}
 }
 

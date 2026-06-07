@@ -35,6 +35,7 @@ const (
 	CloudService_GetPveInventory_FullMethodName     = "/protos.CloudService/GetPveInventory"
 	CloudService_GetCloudDomain_FullMethodName      = "/protos.CloudService/GetCloudDomain"
 	CloudService_GetVmVarsBlake_FullMethodName      = "/protos.CloudService/GetVmVarsBlake"
+	CloudService_GetDnsARecordSet_FullMethodName    = "/protos.CloudService/GetDnsARecordSet"
 )
 
 // CloudServiceClient is the client API for CloudService service.
@@ -57,6 +58,7 @@ type CloudServiceClient interface {
 	GetPveInventory(ctx context.Context, in *GetPveInventoryRequest, opts ...grpc.CallOption) (*GetPveInventoryResponse, error)
 	GetCloudDomain(ctx context.Context, in *GetCloudDomainRequest, opts ...grpc.CallOption) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(ctx context.Context, in *GetVmVarsBlakeRequest, opts ...grpc.CallOption) (*GetVmVarsBlakeResponse, error)
+	GetDnsARecordSet(ctx context.Context, in *GetDnsARecordSetRequest, opts ...grpc.CallOption) (*GetDnsARecordSetResponse, error)
 }
 
 type cloudServiceClient struct {
@@ -227,6 +229,16 @@ func (c *cloudServiceClient) GetVmVarsBlake(ctx context.Context, in *GetVmVarsBl
 	return out, nil
 }
 
+func (c *cloudServiceClient) GetDnsARecordSet(ctx context.Context, in *GetDnsARecordSetRequest, opts ...grpc.CallOption) (*GetDnsARecordSetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDnsARecordSetResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetDnsARecordSet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudServiceServer is the server API for CloudService service.
 // All implementations must embed UnimplementedCloudServiceServer
 // for forward compatibility.
@@ -247,6 +259,7 @@ type CloudServiceServer interface {
 	GetPveInventory(context.Context, *GetPveInventoryRequest) (*GetPveInventoryResponse, error)
 	GetCloudDomain(context.Context, *GetCloudDomainRequest) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(context.Context, *GetVmVarsBlakeRequest) (*GetVmVarsBlakeResponse, error)
+	GetDnsARecordSet(context.Context, *GetDnsARecordSetRequest) (*GetDnsARecordSetResponse, error)
 	mustEmbedUnimplementedCloudServiceServer()
 }
 
@@ -304,6 +317,9 @@ func (UnimplementedCloudServiceServer) GetCloudDomain(context.Context, *GetCloud
 }
 func (UnimplementedCloudServiceServer) GetVmVarsBlake(context.Context, *GetVmVarsBlakeRequest) (*GetVmVarsBlakeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetVmVarsBlake not implemented")
+}
+func (UnimplementedCloudServiceServer) GetDnsARecordSet(context.Context, *GetDnsARecordSetRequest) (*GetDnsARecordSetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDnsARecordSet not implemented")
 }
 func (UnimplementedCloudServiceServer) mustEmbedUnimplementedCloudServiceServer() {}
 func (UnimplementedCloudServiceServer) testEmbeddedByValue()                      {}
@@ -614,6 +630,24 @@ func _CloudService_GetVmVarsBlake_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudService_GetDnsARecordSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDnsARecordSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetDnsARecordSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetDnsARecordSet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetDnsARecordSet(ctx, req.(*GetDnsARecordSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudService_ServiceDesc is the grpc.ServiceDesc for CloudService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -684,6 +718,10 @@ var CloudService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVmVarsBlake",
 			Handler:    _CloudService_GetVmVarsBlake_Handler,
+		},
+		{
+			MethodName: "GetDnsARecordSet",
+			Handler:    _CloudService_GetDnsARecordSet_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

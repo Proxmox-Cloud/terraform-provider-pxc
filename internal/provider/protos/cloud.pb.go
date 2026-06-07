@@ -1699,6 +1699,102 @@ func (x *GetCloudDomainResponse) GetDomain() string {
 	return ""
 }
 
+type GetDnsARecordSetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	Host          string                 `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDnsARecordSetRequest) Reset() {
+	*x = GetDnsARecordSetRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDnsARecordSetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDnsARecordSetRequest) ProtoMessage() {}
+
+func (x *GetDnsARecordSetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDnsARecordSetRequest.ProtoReflect.Descriptor instead.
+func (*GetDnsARecordSetRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetDnsARecordSetRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+func (x *GetDnsARecordSetRequest) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+type GetDnsARecordSetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Addrs         []string               `protobuf:"bytes,1,rep,name=addrs,proto3" json:"addrs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDnsARecordSetResponse) Reset() {
+	*x = GetDnsARecordSetResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDnsARecordSetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDnsARecordSetResponse) ProtoMessage() {}
+
+func (x *GetDnsARecordSetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDnsARecordSetResponse.ProtoReflect.Descriptor instead.
+func (*GetDnsARecordSetResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetDnsARecordSetResponse) GetAddrs() []string {
+	if x != nil {
+		return x.Addrs
+	}
+	return nil
+}
+
 var File_protos_cloud_proto protoreflect.FileDescriptor
 
 const file_protos_cloud_proto_rawDesc = "" +
@@ -1837,8 +1933,13 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"\n" +
 	"target_pve\x18\x01 \x01(\tR\ttargetPve\"0\n" +
 	"\x16GetCloudDomainResponse\x12\x16\n" +
-	"\x06domain\x18\x01 \x01(\tR\x06domain2\xbc\n" +
+	"\x06domain\x18\x01 \x01(\tR\x06domain\"L\n" +
+	"\x17GetDnsARecordSetRequest\x12\x1d\n" +
 	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x12\n" +
+	"\x04host\x18\x02 \x01(\tR\x04host\"0\n" +
+	"\x18GetDnsARecordSetResponse\x12\x14\n" +
+	"\x05addrs\x18\x01 \x03(\tR\x05addrs2\x93\v\n" +
 	"\fCloudService\x12R\n" +
 	"\x13GetMasterKubeconfig\x12\x1c.protos.GetKubeconfigRequest\x1a\x1d.protos.GetKubeconfigResponse\x12O\n" +
 	"\x0eGetClusterVars\x12\x1d.protos.GetClusterVarsRequest\x1a\x1e.protos.GetClusterVarsResponse\x12[\n" +
@@ -1855,7 +1956,8 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"\x0eGetProxmoxHost\x12\x1d.protos.GetProxmoxHostRequest\x1a\x1e.protos.GetProxmoxHostResponse\x12R\n" +
 	"\x0fGetPveInventory\x12\x1e.protos.GetPveInventoryRequest\x1a\x1f.protos.GetPveInventoryResponse\x12O\n" +
 	"\x0eGetCloudDomain\x12\x1d.protos.GetCloudDomainRequest\x1a\x1e.protos.GetCloudDomainResponse\x12O\n" +
-	"\x0eGetVmVarsBlake\x12\x1d.protos.GetVmVarsBlakeRequest\x1a\x1e.protos.GetVmVarsBlakeResponseBQZOgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
+	"\x0eGetVmVarsBlake\x12\x1d.protos.GetVmVarsBlakeRequest\x1a\x1e.protos.GetVmVarsBlakeResponse\x12U\n" +
+	"\x10GetDnsARecordSet\x12\x1f.protos.GetDnsARecordSetRequest\x1a .protos.GetDnsARecordSetResponseBQZOgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
 
 var (
 	file_protos_cloud_proto_rawDescOnce sync.Once
@@ -1870,7 +1972,7 @@ func file_protos_cloud_proto_rawDescGZIP() []byte {
 }
 
 var file_protos_cloud_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_protos_cloud_proto_goTypes = []any{
 	(GetSshKeyRequest_KeyType)(0),      // 0: protos.GetSshKeyRequest.KeyType
 	(*GetPveInventoryRequest)(nil),     // 1: protos.GetPveInventoryRequest
@@ -1905,15 +2007,17 @@ var file_protos_cloud_proto_goTypes = []any{
 	(*GetVmVarsBlakeResponse)(nil),     // 30: protos.GetVmVarsBlakeResponse
 	(*GetCloudDomainRequest)(nil),      // 31: protos.GetCloudDomainRequest
 	(*GetCloudDomainResponse)(nil),     // 32: protos.GetCloudDomainResponse
-	nil,                                // 33: protos.GetProxmoxApiRequest.GetArgsEntry
-	nil,                                // 34: protos.CreateProxmoxApiRequest.CreateArgsEntry
-	nil,                                // 35: protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
+	(*GetDnsARecordSetRequest)(nil),    // 33: protos.GetDnsARecordSetRequest
+	(*GetDnsARecordSetResponse)(nil),   // 34: protos.GetDnsARecordSetResponse
+	nil,                                // 35: protos.GetProxmoxApiRequest.GetArgsEntry
+	nil,                                // 36: protos.CreateProxmoxApiRequest.CreateArgsEntry
+	nil,                                // 37: protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
 }
 var file_protos_cloud_proto_depIdxs = []int32{
-	33, // 0: protos.GetProxmoxApiRequest.get_args:type_name -> protos.GetProxmoxApiRequest.GetArgsEntry
-	34, // 1: protos.CreateProxmoxApiRequest.create_args:type_name -> protos.CreateProxmoxApiRequest.CreateArgsEntry
+	35, // 0: protos.GetProxmoxApiRequest.get_args:type_name -> protos.GetProxmoxApiRequest.GetArgsEntry
+	36, // 1: protos.CreateProxmoxApiRequest.create_args:type_name -> protos.CreateProxmoxApiRequest.CreateArgsEntry
 	0,  // 2: protos.GetSshKeyRequest.key_type:type_name -> protos.GetSshKeyRequest.KeyType
-	35, // 3: protos.GetVmVarsBlakeResponse.blake_id_vars:type_name -> protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
+	37, // 3: protos.GetVmVarsBlakeResponse.blake_id_vars:type_name -> protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
 	15, // 4: protos.CloudService.GetMasterKubeconfig:input_type -> protos.GetKubeconfigRequest
 	17, // 5: protos.CloudService.GetClusterVars:input_type -> protos.GetClusterVarsRequest
 	19, // 6: protos.CloudService.GetCloudFileSecret:input_type -> protos.GetCloudFileSecretRequest
@@ -1930,24 +2034,26 @@ var file_protos_cloud_proto_depIdxs = []int32{
 	1,  // 17: protos.CloudService.GetPveInventory:input_type -> protos.GetPveInventoryRequest
 	31, // 18: protos.CloudService.GetCloudDomain:input_type -> protos.GetCloudDomainRequest
 	29, // 19: protos.CloudService.GetVmVarsBlake:input_type -> protos.GetVmVarsBlakeRequest
-	16, // 20: protos.CloudService.GetMasterKubeconfig:output_type -> protos.GetKubeconfigResponse
-	18, // 21: protos.CloudService.GetClusterVars:output_type -> protos.GetClusterVarsResponse
-	20, // 22: protos.CloudService.GetCloudFileSecret:output_type -> protos.GetCloudFileSecretResponse
-	22, // 23: protos.CloudService.CreateCloudSecret:output_type -> protos.CreateCloudSecretResponse
-	24, // 24: protos.CloudService.DeleteCloudSecret:output_type -> protos.DeleteCloudSecretResponse
-	26, // 25: protos.CloudService.GetCloudSecret:output_type -> protos.GetCloudSecretResponse
-	28, // 26: protos.CloudService.GetCloudSecrets:output_type -> protos.GetCloudSecretsResponse
-	14, // 27: protos.CloudService.GetCephAccess:output_type -> protos.GetCephAccessResponse
-	12, // 28: protos.CloudService.GetSshKey:output_type -> protos.GetSshKeyResponse
-	6,  // 29: protos.CloudService.GetProxmoxApi:output_type -> protos.GetProxmoxApiResponse
-	8,  // 30: protos.CloudService.CreateProxmoxApi:output_type -> protos.CreateProxmoxApiResponse
-	10, // 31: protos.CloudService.DeleteProxmoxApi:output_type -> protos.DeleteProxmoxApiResponse
-	4,  // 32: protos.CloudService.GetProxmoxHost:output_type -> protos.GetProxmoxHostResponse
-	2,  // 33: protos.CloudService.GetPveInventory:output_type -> protos.GetPveInventoryResponse
-	32, // 34: protos.CloudService.GetCloudDomain:output_type -> protos.GetCloudDomainResponse
-	30, // 35: protos.CloudService.GetVmVarsBlake:output_type -> protos.GetVmVarsBlakeResponse
-	20, // [20:36] is the sub-list for method output_type
-	4,  // [4:20] is the sub-list for method input_type
+	33, // 20: protos.CloudService.GetDnsARecordSet:input_type -> protos.GetDnsARecordSetRequest
+	16, // 21: protos.CloudService.GetMasterKubeconfig:output_type -> protos.GetKubeconfigResponse
+	18, // 22: protos.CloudService.GetClusterVars:output_type -> protos.GetClusterVarsResponse
+	20, // 23: protos.CloudService.GetCloudFileSecret:output_type -> protos.GetCloudFileSecretResponse
+	22, // 24: protos.CloudService.CreateCloudSecret:output_type -> protos.CreateCloudSecretResponse
+	24, // 25: protos.CloudService.DeleteCloudSecret:output_type -> protos.DeleteCloudSecretResponse
+	26, // 26: protos.CloudService.GetCloudSecret:output_type -> protos.GetCloudSecretResponse
+	28, // 27: protos.CloudService.GetCloudSecrets:output_type -> protos.GetCloudSecretsResponse
+	14, // 28: protos.CloudService.GetCephAccess:output_type -> protos.GetCephAccessResponse
+	12, // 29: protos.CloudService.GetSshKey:output_type -> protos.GetSshKeyResponse
+	6,  // 30: protos.CloudService.GetProxmoxApi:output_type -> protos.GetProxmoxApiResponse
+	8,  // 31: protos.CloudService.CreateProxmoxApi:output_type -> protos.CreateProxmoxApiResponse
+	10, // 32: protos.CloudService.DeleteProxmoxApi:output_type -> protos.DeleteProxmoxApiResponse
+	4,  // 33: protos.CloudService.GetProxmoxHost:output_type -> protos.GetProxmoxHostResponse
+	2,  // 34: protos.CloudService.GetPveInventory:output_type -> protos.GetPveInventoryResponse
+	32, // 35: protos.CloudService.GetCloudDomain:output_type -> protos.GetCloudDomainResponse
+	30, // 36: protos.CloudService.GetVmVarsBlake:output_type -> protos.GetVmVarsBlakeResponse
+	34, // 37: protos.CloudService.GetDnsARecordSet:output_type -> protos.GetDnsARecordSetResponse
+	21, // [21:38] is the sub-list for method output_type
+	4,  // [4:21] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -1964,7 +2070,7 @@ func file_protos_cloud_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protos_cloud_proto_rawDesc), len(file_protos_cloud_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   35,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

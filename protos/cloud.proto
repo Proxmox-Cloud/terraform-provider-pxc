@@ -21,6 +21,7 @@ service CloudService {
   rpc GetPveInventory(GetPveInventoryRequest) returns (GetPveInventoryResponse);
   rpc GetCloudDomain(GetCloudDomainRequest) returns (GetCloudDomainResponse);
   rpc GetVmVarsBlake(GetVmVarsBlakeRequest) returns (GetVmVarsBlakeResponse);
+  rpc GetDnsARecordSet(GetDnsARecordSetRequest) returns (GetDnsARecordSetResponse);
 }
 
 message GetPveInventoryRequest {
@@ -181,4 +182,13 @@ message GetCloudDomainRequest {
 
 message GetCloudDomainResponse {
   string domain = 1;
+}
+
+message GetDnsARecordSetRequest {
+  string target_pve = 1;
+  string host = 2;
+}
+
+message GetDnsARecordSetResponse {
+  repeated string addrs = 1;
 }

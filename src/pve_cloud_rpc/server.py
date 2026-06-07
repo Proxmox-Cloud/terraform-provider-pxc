@@ -5,6 +5,7 @@ import sys
 from contextlib import AsyncExitStack
 
 import asyncssh
+import dns.resolver
 import grpc
 import yaml
 from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
@@ -510,6 +511,37 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         return cloud_pb2.GetPveInventoryResponse(
             inventory=yaml.safe_dump(pve_inventory), cloud_domain=cloud_domain
         )
+
+    async def GetDnsARecordSet(self, request, context):
+        target_pve = request.target_pve
+        host = request.host
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
+            target_pve, skip_py_cloud_check=True
+        )
+
+        if jump_host:
+            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+
+            addresses_json = await pxrpc.get_dns_a_record(host)
+
+            return cloud_pb2.GetDnsARecordSetResponse(addrs=json.loads(addresses_json))
+
+        else:
+            cluster_vars = get_cluster_vars(online_pve_host, jump_host)
+
+            resolver = dns.resolver.Resolver()
+            resolver.nameservers = [
+                cluster_vars["bind_master_ip"],
+                cluster_vars["bind_slave_ip"],
+            ]
+
+            try:
+                answers = resolver.resolve(host, "A")
+                addrs = [rdata.address for rdata in answers]
+            except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+                addrs = []
+
+            return cloud_pb2.GetDnsARecordSetResponse(addrs=addrs)
 
 
 async def serve():
