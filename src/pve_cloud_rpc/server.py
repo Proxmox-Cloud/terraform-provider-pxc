@@ -13,11 +13,11 @@ from pve_cloud.cli.pxrpc import launch_pxrpc_async
 from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
+from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
 from pve_cloud.orm.alchemy import ProxmoxCloudSecrets, VirtualMachineVars
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
 
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
