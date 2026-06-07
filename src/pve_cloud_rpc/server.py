@@ -170,7 +170,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             ):  # defaults to true but in special cases user might want to keep newlines (e.g. certs)
                 catted_secret = catted_secret.rstrip()
 
-
         return cloud_pb2.GetCloudFileSecretResponse(secret=catted_secret)
 
     # non file proxmox cloud secrets are stored in the patroni database
@@ -399,7 +398,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             )
             catted_keyring = cmd.stdout
 
-
         return cloud_pb2.GetCephAccessResponse(
             ceph_conf=catted_conf, admin_keyring=catted_keyring
         )
@@ -428,7 +426,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     )
                     catted_key = cmd.stdout
 
-
         return cloud_pb2.GetSshKeyResponse(key=catted_key)
 
     async def GetProxmoxApi(self, request, context):
@@ -456,7 +453,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                 check=True,
             )
             resp_json = cmd.stdout
-
 
         return cloud_pb2.GetProxmoxApiResponse(json_resp=resp_json)
 
@@ -491,7 +487,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     success=False, err_message=f"Exit code {e.exit_status} - {e.stderr}"
                 )
 
-
         return cloud_pb2.CreateProxmoxApiResponse(success=True)
 
     async def DeleteProxmoxApi(self, request, context):
@@ -518,7 +513,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                 return cloud_pb2.DeleteProxmoxApiResponse(
                     success=False, err_message=f"Exit code {e.exit_status} - {e.stderr}"
                 )
-
 
         return cloud_pb2.DeleteProxmoxApiResponse(success=True)
 
