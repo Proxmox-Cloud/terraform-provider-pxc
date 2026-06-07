@@ -155,7 +155,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         # go through jump host if defined
         jc = None
         if jump_host:
-            jc = get_jump_host_async(jump_host)
+            jc = await get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -390,7 +390,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = get_jump_host_async(jump_host)
+            jc = await get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -420,7 +420,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = get_jump_host_async(jump_host)
+            jc = await get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -450,7 +450,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = get_jump_host_async(jump_host)
+            jc = await get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -482,7 +482,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = get_jump_host_async(jump_host)
+            jc = await get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
@@ -519,7 +519,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         jc = None
         if jump_host:
-            jc = get_jump_host_async(jump_host)
+            jc = await get_jump_host_async(jump_host)
 
         async with asyncssh.connect(
             online_pve_host, username="root", known_hosts=None, tunnel=jc
