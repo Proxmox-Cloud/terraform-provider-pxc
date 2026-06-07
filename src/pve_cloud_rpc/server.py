@@ -5,6 +5,7 @@ import sys
 from contextlib import AsyncExitStack
 
 import asyncssh
+import dns.resolver
 import grpc
 import yaml
 from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
@@ -23,7 +24,7 @@ import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
 import pve_cloud_rpc.protos.health_pb2 as health_pb2
 import pve_cloud_rpc.protos.health_pb2_grpc as health_pb2_grpc
-import dns.resolver
+
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
 
@@ -510,7 +511,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         return cloud_pb2.GetPveInventoryResponse(
             inventory=yaml.safe_dump(pve_inventory), cloud_domain=cloud_domain
         )
-    
+
     async def GetDnsARecordSet(self, request, context):
         target_pve = request.target_pve
         host = request.host
@@ -523,16 +524,15 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
             addresses_json = await pxrpc.get_dns_a_record(host)
 
-            return cloud_pb2.GetDnsARecordSetResponse(
-                addrs=json.loads(addresses_json)
-            )
+            return cloud_pb2.GetDnsARecordSetResponse(addrs=json.loads(addresses_json))
 
         else:
             cluster_vars = get_cluster_vars(online_pve_host, jump_host)
 
             resolver = dns.resolver.Resolver()
             resolver.nameservers = [
-                cluster_vars["bind_master_ip"], cluster_vars["bind_slave_ip"]
+                cluster_vars["bind_master_ip"],
+                cluster_vars["bind_slave_ip"],
             ]
 
             try:
@@ -541,10 +541,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
                 addrs = []
 
-            return cloud_pb2.GetDnsARecordSetResponse(
-                addrs=addrs
-            )
-
+            return cloud_pb2.GetDnsARecordSetResponse(addrs=addrs)
 
 
 async def serve():
