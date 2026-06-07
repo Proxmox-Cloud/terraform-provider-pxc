@@ -4,7 +4,6 @@ import os
 import sys
 from contextlib import AsyncExitStack
 
-
 import asyncssh
 import grpc
 import yaml
@@ -65,7 +64,6 @@ async def get_engine(online_pve_host):
     engine = create_engine(patroni_cstr)
 
     return engine
-
 
 
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
@@ -253,9 +251,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         if jump_host:
             pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            secret_json = await pxrpc.get_cloud_secret(
-               cloud_domain, secret_name
-            )
+            secret_json = await pxrpc.get_cloud_secret(cloud_domain, secret_name)
 
             if secret_json == "":
                 return cloud_pb2.GetCloudSecretResponse()
@@ -292,9 +288,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         if jump_host:
             pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            secrets_json = await pxrpc.get_cloud_secrets(
-                cloud_domain, secret_type
-            )
+            secrets_json = await pxrpc.get_cloud_secrets(cloud_domain, secret_type)
 
             return cloud_pb2.GetCloudSecretsResponse(secrets=secrets_json)
 
@@ -327,9 +321,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
             blake_ids_json = json.dumps(list(blake_ids))
-            return_vars = await pxrpc.get_vm_vars_blake(
-                blake_ids_json, cloud_domain
-            )
+            return_vars = await pxrpc.get_vm_vars_blake(blake_ids_json, cloud_domain)
 
             return cloud_pb2.GetVmVarsBlakeResponse(
                 blake_id_vars={
