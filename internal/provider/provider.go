@@ -43,6 +43,7 @@ type PxcProvider struct {
 type PxcProviderModel struct {
 	InventoryPath types.String `tfsdk:"inventory"`
 	TargetCluster types.String `tfsdk:"target_cluster"`
+	CloudDomain types.String `tfsdk:"cloud_domain"`
 	exitCh       chan bool
 }
 
@@ -56,10 +57,14 @@ func (p *PxcProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 		Attributes: map[string]schema.Attribute{
 			"inventory": schema.StringAttribute{
 				MarkdownDescription: "Path to your proxmox cloud inventory yaml file.",
-				Required:            true,
+				Optional:            true,
 			},
 			"target_cluster": schema.StringAttribute{
 				MarkdownDescription: "Proxmox target cluster you want to use, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv",
+				Optional:            true,
+			},
+			"cloud_domain": schema.StringAttribute{
+				MarkdownDescription: "Instead of passing in an inventory file you can also pass the pve cloud domain in directly, this is useful for integrating external non pxc k8s clusters. For this target_cluster has to be also set.",
 				Optional:            true,
 			},
 		},
@@ -76,6 +81,7 @@ type KubesprayInventory struct {
 	ExtraControlPlaneSans []string `yaml:"extra_control_plane_sans"`
 }
 
+// not really used at the moment, only redundant pve_cloud_domain field
 type PveCloudInventory struct {
 	PveCloudDomain string `yaml:"pve_cloud_domain"`
 }
@@ -102,85 +108,105 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
-	// first we parse the inventory file
-	yamlFile, err := os.ReadFile(data.InventoryPath.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Inventory File",
-			"Could not read file at "+data.InventoryPath.ValueString()+": "+err.Error(),
-		)
-		return
-	}
-
 	// first we need to check what type of inventory was passed
 	var cloudInv CloudInventory
-	err = yaml.Unmarshal(yamlFile, &cloudInv)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Parsing Inventory YAML",
-			"Could not unmarshal YAML: "+err.Error(),
-		)
-		return
-	}
 
-	switch cloudInv.Plugin {
-		case "pxc.cloud.pve_cloud_inv":
-			// core cloud inventory
-			if data.TargetCluster.IsNull() {
-				resp.Diagnostics.AddError(
-					"Bad configuration",
-					"When passing a pxc.cloud.pve_cloud_inv inventory you need to set target_cluster in the provider configuration!",
-				)
-				return
-			}
-			// parse the pve_cloud_inv file
-			var pveCloudInventory PveCloudInventory
-			err = yaml.Unmarshal(yamlFile, &pveCloudInventory)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error Parsing Inventory YAML",
-					"Could not unmarshal YAML: "+err.Error(),
-				)
-				return
-			}
-
-			cloudInv.StackName = "master" // only one cloud inv per cloud
-			cloudInv.TargetPve = fmt.Sprintf("%s.%s", data.TargetCluster.ValueString(), pveCloudInventory.PveCloudDomain)
-
-			cloudInv.PveCloudInventory = &pveCloudInventory
-
-		case "pxc.cloud.kubespray_inv":
-			// kubernetes
-			if !data.TargetCluster.IsNull() {
-				resp.Diagnostics.AddError(
-					"Bad configuration",
-					"When passing a pxc.cloud.kubespray inventory you are not allowed to set target_cluster! It is sourced from the inventory file.",
-				)
-				return
-			}
-
-			var kubeInv KubesprayInventory
-			err = yaml.Unmarshal(yamlFile, &kubeInv)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error Parsing Inventory YAML",
-					"Could not unmarshal YAML: "+err.Error(),
-				)
-				return
-			}
-
-			cloudInv.TargetPve = kubeInv.TargetPve
-			cloudInv.StackName = kubeInv.StackName
-
-			cloudInv.KubesprayInventory = &kubeInv
-
-
-		default:
+	if data.CloudDomain.ValueString() != "" {
+		// cloud domain is defined we initialize manually / external cluster
+		if data.TargetCluster.IsNull() {
 			resp.Diagnostics.AddError(
-				"Unknown type",
-				"Unknown plugin type: "+ cloudInv.Plugin,
+				"Bad configuration",
+				"When passing a pxc.cloud.pve_cloud_inv inventory you need to set target_cluster in the provider configuration!",
 			)
 			return
+		}
+
+		cloudInv = CloudInventory{
+			Plugin: "pxc.cloud.manual",
+			CloudDomain: data.CloudDomain.ValueString(),
+			StackName: "external", // for now all external stacks are grouped under the same stack
+			TargetPve: fmt.Sprintf("%s.%s", data.TargetCluster.ValueString(), data.CloudDomain.ValueString()),
+		}
+
+	} else {
+		// otherwise we continue to local inventory file init (default within pxc environments)
+		// first we parse the inventory file
+		yamlFile, err := os.ReadFile(data.InventoryPath.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Reading Inventory File",
+				"Could not read file at "+data.InventoryPath.ValueString()+": "+err.Error(),
+			)
+			return
+		}
+		
+		err = yaml.Unmarshal(yamlFile, &cloudInv)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Parsing Inventory YAML",
+				"Could not unmarshal YAML: "+err.Error(),
+			)
+			return
+		}
+
+		switch cloudInv.Plugin {
+			case "pxc.cloud.pve_cloud_inv":
+				// core cloud inventory
+				if data.TargetCluster.IsNull() {
+					resp.Diagnostics.AddError(
+						"Bad configuration",
+						"When passing a pxc.cloud.pve_cloud_inv inventory you need to set target_cluster in the provider configuration!",
+					)
+					return
+				}
+				// parse the pve_cloud_inv file
+				var pveCloudInventory PveCloudInventory
+				err = yaml.Unmarshal(yamlFile, &pveCloudInventory)
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error Parsing Inventory YAML",
+						"Could not unmarshal YAML: "+err.Error(),
+					)
+					return
+				}
+
+				cloudInv.StackName = "master" // only one cloud inv per cloud
+				cloudInv.TargetPve = fmt.Sprintf("%s.%s", data.TargetCluster.ValueString(), pveCloudInventory.PveCloudDomain)
+
+				cloudInv.PveCloudInventory = &pveCloudInventory
+
+			case "pxc.cloud.kubespray_inv":
+				// kubernetes
+				if !data.TargetCluster.IsNull() {
+					resp.Diagnostics.AddError(
+						"Bad configuration",
+						"When passing a pxc.cloud.kubespray inventory you are not allowed to set target_cluster! It is sourced from the inventory file.",
+					)
+					return
+				}
+
+				var kubeInv KubesprayInventory
+				err = yaml.Unmarshal(yamlFile, &kubeInv)
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error Parsing Inventory YAML",
+						"Could not unmarshal YAML: "+err.Error(),
+					)
+					return
+				}
+
+				cloudInv.TargetPve = kubeInv.TargetPve
+				cloudInv.StackName = kubeInv.StackName
+
+				cloudInv.KubesprayInventory = &kubeInv
+
+			default:
+				resp.Diagnostics.AddError(
+					"Unknown type",
+					"Unknown plugin type: "+ cloudInv.Plugin,
+				)
+				return
+		}
 	}
 
 	// next launch our python grpc server
