@@ -56,9 +56,17 @@ func (r *KubeconfigEphemeralResource) Configure(ctx context.Context, req ephemer
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CloudInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
+		return
+	}
+
+	if cloudInv.KubesprayInventory == nil {
+		resp.Diagnostics.AddError(
+			"Unsupported with provider config",
+			"The use of this resource requires initialization with a pxc.cloud.kubespray_inv invetory file.",
+		)
 		return
 	}
 

@@ -53,7 +53,7 @@ func (r *CloudSecretResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "Name of the secret, has to be unique for the target_pve.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(), 
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			// todo: figure out terraforms absurd type system to avoid jsonencode and decode calls to pass / receive dynamic values
@@ -84,7 +84,7 @@ func (r *CloudSecretResource) Configure(ctx context.Context, req resource.Config
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CloudInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -152,7 +152,7 @@ func (r *CloudSecretResource) Read(ctx context.Context, req resource.ReadRequest
 	if cresp.Secret == "" {
 		// secret got deleted
 		resp.State.RemoveResource(ctx)
-    return
+		return
 	}
 
 	// todo: implement json based comparison and update

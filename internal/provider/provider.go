@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"syscall"
 
 	"fmt"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"gopkg.in/yaml.v3"
 	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"gopkg.in/yaml.v3"
 )
 
 // Ensure PxcProvider satisfies various provider interfaces.
@@ -43,7 +44,12 @@ type PxcProvider struct {
 type PxcProviderModel struct {
 	InventoryPath types.String `tfsdk:"inventory"`
 	TargetCluster types.String `tfsdk:"target_cluster"`
+
+	// with these two + target_cluster we can use our pxc infrastructure in non pxc k8s clusters tf configs
+	ExternalStackName types.String `tfsdk:"external_stack_name"`
 	CloudDomain types.String `tfsdk:"cloud_domain"`
+	
+	// used to manage exit signal and shutting down our python grpc server
 	exitCh       chan bool
 }
 
@@ -61,6 +67,10 @@ func (p *PxcProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 			},
 			"target_cluster": schema.StringAttribute{
 				MarkdownDescription: "Proxmox target cluster you want to use, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv",
+				Optional:            true,
+			},
+			"external_stack_name": schema.StringAttribute{
+				MarkdownDescription: "This is the central property for instantiating the provider for use in an non pxc related terraform configuration e.g. and non pxc kubernetes cluster.",
 				Optional:            true,
 			},
 			"cloud_domain": schema.StringAttribute{
@@ -111,12 +121,19 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	// first we need to check what type of inventory was passed
 	var cloudInv CloudInventory
 
-	if data.CloudDomain.ValueString() != "" {
+	if !data.ExternalStackName.IsNull() {
 		// cloud domain is defined we initialize manually / external cluster
 		if data.TargetCluster.IsNull() {
 			resp.Diagnostics.AddError(
 				"Bad configuration",
-				"When passing a pxc.cloud.pve_cloud_inv inventory you need to set target_cluster in the provider configuration!",
+				"When passing a external_stack_name you need to set target_cluster in the provider configuration!",
+			)
+			return
+		}
+		if data.CloudDomain.IsNull() {
+			resp.Diagnostics.AddError(
+				"Bad configuration",
+				"When passing a external_stack_name you need to set cloud_domain in the provider configuration!",
 			)
 			return
 		}
@@ -124,7 +141,7 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		cloudInv = CloudInventory{
 			Plugin: "pxc.cloud.manual",
 			CloudDomain: data.CloudDomain.ValueString(),
-			StackName: "external", // for now all external stacks are grouped under the same stack
+			StackName: fmt.Sprintf("%s-external", data.ExternalStackName.ValueString()),
 			TargetPve: fmt.Sprintf("%s.%s", data.TargetCluster.ValueString(), data.CloudDomain.ValueString()),
 		}
 
@@ -261,7 +278,8 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	go func() {
 		<-p.exitCh // wait for exit signal
 
-		cmd.Process.Kill() // kill
+		// soft kill the rpc server (allows shutdown of mp workers)
+		cmd.Process.Signal(syscall.SIGTERM)
 
 		p.exitCh <- true // call finished
 	}()
@@ -353,6 +371,7 @@ func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource 
 		NewCloudSecretAgeResource,
 		NewPveGotifyTargetResource,
 		NewPveGraphiteExporterResource,
+		NewExternalAcmeTlsResource,
 	}
 }
 
@@ -375,6 +394,8 @@ func (p *PxcProvider) DataSources(ctx context.Context) []func() datasource.DataS
 		NewCloudSecretsDataSource,
 		NewCloudVmsDataSource,
 		NewDnsARecordSetSource,
+		NewGotifyMasterDataSource,
+		NewVlSelectAuthDataSource,
 	}
 }
 

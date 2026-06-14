@@ -19,23 +19,25 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CloudService_GetMasterKubeconfig_FullMethodName = "/protos.CloudService/GetMasterKubeconfig"
-	CloudService_GetClusterVars_FullMethodName      = "/protos.CloudService/GetClusterVars"
-	CloudService_GetCloudFileSecret_FullMethodName  = "/protos.CloudService/GetCloudFileSecret"
-	CloudService_CreateCloudSecret_FullMethodName   = "/protos.CloudService/CreateCloudSecret"
-	CloudService_DeleteCloudSecret_FullMethodName   = "/protos.CloudService/DeleteCloudSecret"
-	CloudService_GetCloudSecret_FullMethodName      = "/protos.CloudService/GetCloudSecret"
-	CloudService_GetCloudSecrets_FullMethodName     = "/protos.CloudService/GetCloudSecrets"
-	CloudService_GetCephAccess_FullMethodName       = "/protos.CloudService/GetCephAccess"
-	CloudService_GetSshKey_FullMethodName           = "/protos.CloudService/GetSshKey"
-	CloudService_GetProxmoxApi_FullMethodName       = "/protos.CloudService/GetProxmoxApi"
-	CloudService_CreateProxmoxApi_FullMethodName    = "/protos.CloudService/CreateProxmoxApi"
-	CloudService_DeleteProxmoxApi_FullMethodName    = "/protos.CloudService/DeleteProxmoxApi"
-	CloudService_GetProxmoxHost_FullMethodName      = "/protos.CloudService/GetProxmoxHost"
-	CloudService_GetPveInventory_FullMethodName     = "/protos.CloudService/GetPveInventory"
-	CloudService_GetCloudDomain_FullMethodName      = "/protos.CloudService/GetCloudDomain"
-	CloudService_GetVmVarsBlake_FullMethodName      = "/protos.CloudService/GetVmVarsBlake"
-	CloudService_GetDnsARecordSet_FullMethodName    = "/protos.CloudService/GetDnsARecordSet"
+	CloudService_GetMasterKubeconfig_FullMethodName   = "/protos.CloudService/GetMasterKubeconfig"
+	CloudService_GetClusterVars_FullMethodName        = "/protos.CloudService/GetClusterVars"
+	CloudService_GetCloudFileSecret_FullMethodName    = "/protos.CloudService/GetCloudFileSecret"
+	CloudService_CreateCloudSecret_FullMethodName     = "/protos.CloudService/CreateCloudSecret"
+	CloudService_DeleteCloudSecret_FullMethodName     = "/protos.CloudService/DeleteCloudSecret"
+	CloudService_GetCloudSecret_FullMethodName        = "/protos.CloudService/GetCloudSecret"
+	CloudService_GetCloudSecrets_FullMethodName       = "/protos.CloudService/GetCloudSecrets"
+	CloudService_GetCephAccess_FullMethodName         = "/protos.CloudService/GetCephAccess"
+	CloudService_GetSshKey_FullMethodName             = "/protos.CloudService/GetSshKey"
+	CloudService_GetProxmoxApi_FullMethodName         = "/protos.CloudService/GetProxmoxApi"
+	CloudService_CreateProxmoxApi_FullMethodName      = "/protos.CloudService/CreateProxmoxApi"
+	CloudService_DeleteProxmoxApi_FullMethodName      = "/protos.CloudService/DeleteProxmoxApi"
+	CloudService_GetProxmoxHost_FullMethodName        = "/protos.CloudService/GetProxmoxHost"
+	CloudService_GetPveInventory_FullMethodName       = "/protos.CloudService/GetPveInventory"
+	CloudService_GetCloudDomain_FullMethodName        = "/protos.CloudService/GetCloudDomain"
+	CloudService_GetVmVarsBlake_FullMethodName        = "/protos.CloudService/GetVmVarsBlake"
+	CloudService_GetDnsARecordSet_FullMethodName      = "/protos.CloudService/GetDnsARecordSet"
+	CloudService_CreateExternalAcmeTls_FullMethodName = "/protos.CloudService/CreateExternalAcmeTls"
+	CloudService_DeleteExternalAcmeTls_FullMethodName = "/protos.CloudService/DeleteExternalAcmeTls"
 )
 
 // CloudServiceClient is the client API for CloudService service.
@@ -59,6 +61,8 @@ type CloudServiceClient interface {
 	GetCloudDomain(ctx context.Context, in *GetCloudDomainRequest, opts ...grpc.CallOption) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(ctx context.Context, in *GetVmVarsBlakeRequest, opts ...grpc.CallOption) (*GetVmVarsBlakeResponse, error)
 	GetDnsARecordSet(ctx context.Context, in *GetDnsARecordSetRequest, opts ...grpc.CallOption) (*GetDnsARecordSetResponse, error)
+	CreateExternalAcmeTls(ctx context.Context, in *CreateExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error)
+	DeleteExternalAcmeTls(ctx context.Context, in *DeleteExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error)
 }
 
 type cloudServiceClient struct {
@@ -239,6 +243,26 @@ func (c *cloudServiceClient) GetDnsARecordSet(ctx context.Context, in *GetDnsARe
 	return out, nil
 }
 
+func (c *cloudServiceClient) CreateExternalAcmeTls(ctx context.Context, in *CreateExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExternalAcmeTlsResponse)
+	err := c.cc.Invoke(ctx, CloudService_CreateExternalAcmeTls_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) DeleteExternalAcmeTls(ctx context.Context, in *DeleteExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExternalAcmeTlsResponse)
+	err := c.cc.Invoke(ctx, CloudService_DeleteExternalAcmeTls_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudServiceServer is the server API for CloudService service.
 // All implementations must embed UnimplementedCloudServiceServer
 // for forward compatibility.
@@ -260,6 +284,8 @@ type CloudServiceServer interface {
 	GetCloudDomain(context.Context, *GetCloudDomainRequest) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(context.Context, *GetVmVarsBlakeRequest) (*GetVmVarsBlakeResponse, error)
 	GetDnsARecordSet(context.Context, *GetDnsARecordSetRequest) (*GetDnsARecordSetResponse, error)
+	CreateExternalAcmeTls(context.Context, *CreateExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error)
+	DeleteExternalAcmeTls(context.Context, *DeleteExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error)
 	mustEmbedUnimplementedCloudServiceServer()
 }
 
@@ -320,6 +346,12 @@ func (UnimplementedCloudServiceServer) GetVmVarsBlake(context.Context, *GetVmVar
 }
 func (UnimplementedCloudServiceServer) GetDnsARecordSet(context.Context, *GetDnsARecordSetRequest) (*GetDnsARecordSetResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDnsARecordSet not implemented")
+}
+func (UnimplementedCloudServiceServer) CreateExternalAcmeTls(context.Context, *CreateExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateExternalAcmeTls not implemented")
+}
+func (UnimplementedCloudServiceServer) DeleteExternalAcmeTls(context.Context, *DeleteExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteExternalAcmeTls not implemented")
 }
 func (UnimplementedCloudServiceServer) mustEmbedUnimplementedCloudServiceServer() {}
 func (UnimplementedCloudServiceServer) testEmbeddedByValue()                      {}
@@ -648,6 +680,42 @@ func _CloudService_GetDnsARecordSet_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudService_CreateExternalAcmeTls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateExternalAcmeTlsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).CreateExternalAcmeTls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_CreateExternalAcmeTls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).CreateExternalAcmeTls(ctx, req.(*CreateExternalAcmeTlsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_DeleteExternalAcmeTls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteExternalAcmeTlsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).DeleteExternalAcmeTls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_DeleteExternalAcmeTls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).DeleteExternalAcmeTls(ctx, req.(*DeleteExternalAcmeTlsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudService_ServiceDesc is the grpc.ServiceDesc for CloudService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -722,6 +790,14 @@ var CloudService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDnsARecordSet",
 			Handler:    _CloudService_GetDnsARecordSet_Handler,
+		},
+		{
+			MethodName: "CreateExternalAcmeTls",
+			Handler:    _CloudService_CreateExternalAcmeTls_Handler,
+		},
+		{
+			MethodName: "DeleteExternalAcmeTls",
+			Handler:    _CloudService_DeleteExternalAcmeTls_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

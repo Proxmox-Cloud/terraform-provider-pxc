@@ -87,7 +87,7 @@ func (r *CloudSecretAgeResource) Configure(ctx context.Context, req resource.Con
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CloudInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -110,12 +110,12 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 	identities := []age.Identity{}
 	home, _ := os.UserHomeDir()
 	sshDir := filepath.Join(home, ".ssh")
-	
+
 	files, _ := os.ReadDir(sshDir)
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), "id_") && !strings.HasSuffix(file.Name(), ".pub") {
 			keyPath := filepath.Join(sshDir, file.Name())
-			
+
 			pemBytes, err := os.ReadFile(keyPath)
 			if err != nil {
 				continue
@@ -127,7 +127,7 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 			}
 		}
 	}
-	
+
 	// additionally a env var can be passed to specific custom location (e.g. e2e usecase)
 	ageSshKey := os.Getenv("CLOUD_AGE_SSH_KEY_FILE")
 	if ageSshKey != "" {
@@ -170,7 +170,7 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// perform the request
-	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve:r.cloudInventory.TargetPve, CloudDomain: r.cloudInventory.CloudDomain, SecretName: data.SecretName.ValueString(), SecretData: rawSecretString})
+	cresp, err := client.CreateCloudSecret(ctx, &pb.CreateCloudSecretRequest{TargetPve: r.cloudInventory.TargetPve, CloudDomain: r.cloudInventory.CloudDomain, SecretName: data.SecretName.ValueString(), SecretData: rawSecretString})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make grp create cloud secret request, got error: %s", err))
 		return
@@ -211,7 +211,7 @@ func (r *CloudSecretAgeResource) Read(ctx context.Context, req resource.ReadRequ
 	if cresp.Secret == "" {
 		// secret got deleted
 		resp.State.RemoveResource(ctx)
-    	return
+		return
 	}
 
 	// todo: implement json based comparison and update, or get someone who is familiar with golangs / tf insane

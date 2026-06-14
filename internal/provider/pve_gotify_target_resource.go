@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	"strings"
+
 	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -32,8 +33,8 @@ type PveGotifyTargetResource struct {
 
 // PveGotifyTargetResourceModel describes the resource data model.
 type PveGotifyTargetResourceModel struct {
-	GotifyHost  types.String `tfsdk:"gotify_host"`
-	GotifyToken types.String `tfsdk:"gotify_token"`
+	GotifyHost        types.String `tfsdk:"gotify_host"`
+	GotifyToken       types.String `tfsdk:"gotify_token"`
 	GotifyCloudDomain types.String `tfsdk:"gotify_cloud_domain"`
 }
 
@@ -80,7 +81,7 @@ func (r *PveGotifyTargetResource) Configure(ctx context.Context, req resource.Co
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CloudInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -214,8 +215,10 @@ func (r *PveGotifyTargetResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
+	cloudDomainParts := strings.Split(data.GotifyCloudDomain.ValueString(), ".")
+
 	// delete the matcher first
-	cresp, err := client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/matchers/%s", fmt.Sprintf("gotify-%s-matcher", r.cloudInventory.StackName))})
+	cresp, err := client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/matchers/%s", fmt.Sprintf("%s-matcher", cloudDomainParts[0]))})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make delete matcher api request, got error: %s", err))
 		return
@@ -227,7 +230,7 @@ func (r *PveGotifyTargetResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// perform the request to delete gotify notification target
-	cresp, err = client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/endpoints/gotify/%s", fmt.Sprintf("gotify-%s", r.cloudInventory.StackName))})
+	cresp, err = client.DeleteProxmoxApi(ctx, &pb.DeleteProxmoxApiRequest{TargetPve: r.cloudInventory.TargetPve, ApiPath: fmt.Sprintf("/cluster/notifications/endpoints/gotify/%s", fmt.Sprintf("gotify-%s", cloudDomainParts[0]))})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make delete gotify api request, got error: %s", err))
 		return

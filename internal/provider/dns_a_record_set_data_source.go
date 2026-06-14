@@ -24,8 +24,8 @@ type DnsARecordSetSource struct {
 
 // DnsARecordSetSourceModel describes the data source data model.
 type DnsARecordSetSourceModel struct {
-	Host    types.String `tfsdk:"host"`
-	Addrs types.List `tfsdk:"addrs"`
+	Host  types.String `tfsdk:"host"`
+	Addrs types.List   `tfsdk:"addrs"`
 }
 
 func (d *DnsARecordSetSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -37,12 +37,12 @@ func (d *DnsARecordSetSource) Schema(ctx context.Context, req datasource.SchemaR
 		MarkdownDescription: "Fetches dns a records for a specified host from the cloud internals bind dns server. Works just like hashicorp/dns provider.",
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
-				Required: true,
+				Required:            true,
 				MarkdownDescription: "The host to fetch records for.",
 			},
 			"addrs": schema.ListAttribute{
 				Computed:            true,
-				ElementType:        types.StringType,
+				ElementType:         types.StringType,
 				MarkdownDescription: "List of IP addresses.",
 			},
 		},
@@ -59,7 +59,7 @@ func (d *DnsARecordSetSource) Configure(ctx context.Context, req datasource.Conf
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CloudInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return

@@ -76,7 +76,7 @@ func (d *CloudSelfDataSource) Configure(ctx context.Context, req datasource.Conf
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CloudInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -91,12 +91,6 @@ func (d *CloudSelfDataSource) Read(ctx context.Context, req datasource.ReadReque
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// first check if the provider was initialized with a kubespray inventory
-	if d.cloudInventory.KubesprayInventory == nil {
-		resp.Diagnostics.AddError("Init Error", fmt.Sprintf("Currently this datasource only supports pxc.cloud.kubespray_inv inventories. Provider was initialized with %s", d.cloudInventory.Plugin))
 		return
 	}
 
@@ -119,28 +113,31 @@ func (d *CloudSelfDataSource) Read(ctx context.Context, req datasource.ReadReque
 	data.StackName = types.StringValue(d.cloudInventory.StackName)
 	data.TargetPve = types.StringValue(d.cloudInventory.TargetPve)
 
-	// convert cluster cert entries and external domains to yaml string
-	ceYamlBytes, err := yaml.Marshal(d.cloudInventory.KubesprayInventory.ClusterCertEntries)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"YAML Marshalling Error",
-			"Could not convert inventory struct to YAML: "+err.Error(),
-		)
-		return
+	// kubespray inventory initialized pxc providers only:
+	if d.cloudInventory.KubesprayInventory != nil {
+		// convert cluster cert entries and external domains to yaml string
+		ceYamlBytes, err := yaml.Marshal(d.cloudInventory.KubesprayInventory.ClusterCertEntries)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"YAML Marshalling Error",
+				"Could not convert inventory struct to YAML: "+err.Error(),
+			)
+			return
+		}
+
+		data.ClusterCertEntries = types.StringValue(string(ceYamlBytes))
+
+		edYamlBytes, err := yaml.Marshal(d.cloudInventory.KubesprayInventory.ExternalDomains)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"YAML Marshalling Error",
+				"Could not convert inventory struct to YAML: "+err.Error(),
+			)
+			return
+		}
+
+		data.ExternalDomains = types.StringValue(string(edYamlBytes))
 	}
-
-	data.ClusterCertEntries = types.StringValue(string(ceYamlBytes))
-
-	edYamlBytes, err := yaml.Marshal(d.cloudInventory.KubesprayInventory.ExternalDomains)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"YAML Marshalling Error",
-			"Could not convert inventory struct to YAML: "+err.Error(),
-		)
-		return
-	}
-
-	data.ExternalDomains = types.StringValue(string(edYamlBytes))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

@@ -119,6 +119,16 @@ class CloudServiceStub:
                 request_serializer=cloud__pb2.GetDnsARecordSetRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetDnsARecordSetResponse.FromString,
                 _registered_method=True)
+        self.CreateExternalAcmeTls = channel.unary_unary(
+                '/protos.CloudService/CreateExternalAcmeTls',
+                request_serializer=cloud__pb2.CreateExternalAcmeTlsRequest.SerializeToString,
+                response_deserializer=cloud__pb2.ExternalAcmeTlsResponse.FromString,
+                _registered_method=True)
+        self.DeleteExternalAcmeTls = channel.unary_unary(
+                '/protos.CloudService/DeleteExternalAcmeTls',
+                request_serializer=cloud__pb2.DeleteExternalAcmeTlsRequest.SerializeToString,
+                response_deserializer=cloud__pb2.ExternalAcmeTlsResponse.FromString,
+                _registered_method=True)
 
 
 class CloudServiceServicer:
@@ -226,6 +236,18 @@ class CloudServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateExternalAcmeTls(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteExternalAcmeTls(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CloudServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -313,6 +335,16 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     servicer.GetDnsARecordSet,
                     request_deserializer=cloud__pb2.GetDnsARecordSetRequest.FromString,
                     response_serializer=cloud__pb2.GetDnsARecordSetResponse.SerializeToString,
+            ),
+            'CreateExternalAcmeTls': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateExternalAcmeTls,
+                    request_deserializer=cloud__pb2.CreateExternalAcmeTlsRequest.FromString,
+                    response_serializer=cloud__pb2.ExternalAcmeTlsResponse.SerializeToString,
+            ),
+            'DeleteExternalAcmeTls': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteExternalAcmeTls,
+                    request_deserializer=cloud__pb2.DeleteExternalAcmeTlsRequest.FromString,
+                    response_serializer=cloud__pb2.ExternalAcmeTlsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -774,6 +806,60 @@ class CloudService:
             '/protos.CloudService/GetDnsARecordSet',
             cloud__pb2.GetDnsARecordSetRequest.SerializeToString,
             cloud__pb2.GetDnsARecordSetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateExternalAcmeTls(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/CreateExternalAcmeTls',
+            cloud__pb2.CreateExternalAcmeTlsRequest.SerializeToString,
+            cloud__pb2.ExternalAcmeTlsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteExternalAcmeTls(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/DeleteExternalAcmeTls',
+            cloud__pb2.DeleteExternalAcmeTlsRequest.SerializeToString,
+            cloud__pb2.ExternalAcmeTlsResponse.FromString,
             options,
             channel_credentials,
             insecure,

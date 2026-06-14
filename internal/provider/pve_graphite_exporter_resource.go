@@ -81,7 +81,7 @@ func (r *PveGraphiteExporterResource) Configure(ctx context.Context, req resourc
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *KubesprayInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CloudInventory, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -107,11 +107,11 @@ func (r *PveGraphiteExporterResource) Create(ctx context.Context, req resource.C
 	}
 
 	createArgs := map[string]string{
-		"--server":  data.Server.ValueString(),
-		"--port":    strconv.FormatInt(int64(data.Port.ValueInt64()), 10),
-		"--type":    "graphite", // default is udp
+		"--server": data.Server.ValueString(),
+		"--port":   strconv.FormatInt(int64(data.Port.ValueInt64()), 10),
+		"--type":   "graphite", // default is udp
 		// something weird going on with k8s nodeport udp, leaving this on the default 1500 causes pvestatd to crash
-		"--mtu": 		 "1400",
+		"--mtu": "1400",
 	}
 
 	// perform the request

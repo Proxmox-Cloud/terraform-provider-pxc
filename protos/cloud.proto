@@ -22,6 +22,8 @@ service CloudService {
   rpc GetCloudDomain(GetCloudDomainRequest) returns (GetCloudDomainResponse);
   rpc GetVmVarsBlake(GetVmVarsBlakeRequest) returns (GetVmVarsBlakeResponse);
   rpc GetDnsARecordSet(GetDnsARecordSetRequest) returns (GetDnsARecordSetResponse);
+  rpc CreateExternalAcmeTls(CreateExternalAcmeTlsRequest) returns (ExternalAcmeTlsResponse);
+  rpc DeleteExternalAcmeTls(DeleteExternalAcmeTlsRequest) returns (ExternalAcmeTlsResponse);
 }
 
 message GetPveInventoryRequest {
@@ -191,4 +193,21 @@ message GetDnsARecordSetRequest {
 
 message GetDnsARecordSetResponse {
   repeated string addrs = 1;
+}
+
+message CreateExternalAcmeTlsRequest {
+  string target_pve = 1;
+  string stack_fqdn = 2;
+  string cert_config_json = 3;
+  string ec_csr_json = 4;
+}
+
+message DeleteExternalAcmeTlsRequest {
+  string target_pve = 1;
+  string stack_fqdn = 2;
+}
+
+message ExternalAcmeTlsResponse {
+  bool success = 1;
+  string err_message = 2;
 }
