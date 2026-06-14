@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import signal
 import sys
 from contextlib import AsyncExitStack
 
@@ -15,7 +16,8 @@ from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
 from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
-from pve_cloud.orm.alchemy import ProxmoxCloudSecrets, VirtualMachineVars, AcmeX509
+from pve_cloud.orm.alchemy import (AcmeX509, ProxmoxCloudSecrets,
+                                   VirtualMachineVars)
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -24,7 +26,6 @@ import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
 import pve_cloud_rpc.protos.health_pb2 as health_pb2
 import pve_cloud_rpc.protos.health_pb2_grpc as health_pb2_grpc
-import signal
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
@@ -554,12 +555,12 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         if jump_host:
             pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            await pxrpc.create_external_acme_tls(stack_fqdn, request.cert_config_json, request.ec_csr_json)
-
-            return cloud_pb2.ExternalAcmeTlsResponse(
-                success=True
+            await pxrpc.create_external_acme_tls(
+                stack_fqdn, request.cert_config_json, request.ec_csr_json
             )
-        
+
+            return cloud_pb2.ExternalAcmeTlsResponse(success=True)
+
         else:
             cert_config = json.loads(request.cert_config_json)
             ec_csr = json.load(request.ec_csr_json)
@@ -570,22 +571,17 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                 try:
                     session.add(
                         AcmeX509(
-                            stack_fqdn=stack_fqdn,
-                            config=cert_config,
-                            ec_csr=ec_csr
+                            stack_fqdn=stack_fqdn, config=cert_config, ec_csr=ec_csr
                         )
                     )
                     session.commit()
 
-                    return cloud_pb2.ExternalAcmeTlsResponse(
-                        success=True
-                    )
+                    return cloud_pb2.ExternalAcmeTlsResponse(success=True)
                 except IntegrityError as e:
                     session.rollback()
                     return cloud_pb2.ExternalAcmeTlsResponse(
                         success=False, err_message=str(e)
                     )
-
 
     async def DeleteExternalAcmeTls(self, request, context):
         target_pve = request.target_pve
@@ -599,10 +595,8 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
             await pxrpc.delete_external_acme_tls(stack_fqdn)
 
-            return cloud_pb2.ExternalAcmeTlsResponse(
-                success=True
-            )
-        
+            return cloud_pb2.ExternalAcmeTlsResponse(success=True)
+
         else:
             engine = await get_engine(online_pve_host)
 
@@ -614,15 +608,13 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                     result = session.execute(stmt)
                     session.commit()
 
-                    return cloud_pb2.ExternalAcmeTlsResponse(
-                        success=True
-                    )
+                    return cloud_pb2.ExternalAcmeTlsResponse(success=True)
                 except IntegrityError as e:
                     session.rollback()
                     return cloud_pb2.ExternalAcmeTlsResponse(
                         success=False, err_message=str(e)
                     )
-                
+
 
 async def serve():
     # patch the current asyncio loop to allow pxc async ssh calls
@@ -644,7 +636,7 @@ async def serve():
 
     def receive_shutdown():
         shutdown_event.set()
-    
+
     asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, receive_shutdown)
     asyncio.get_running_loop().add_signal_handler(signal.SIGINT, receive_shutdown)
 
@@ -655,9 +647,9 @@ async def serve():
         await asyncio.wait(
             [
                 asyncio.create_task(server.wait_for_termination()),
-                asyncio.create_task(shutdown_event.wait())
+                asyncio.create_task(shutdown_event.wait()),
             ],
-            return_when=asyncio.FIRST_COMPLETED
+            return_when=asyncio.FIRST_COMPLETED,
         )
     finally:
         # Ensure cleanup
