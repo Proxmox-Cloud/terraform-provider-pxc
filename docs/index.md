@@ -26,5 +26,6 @@ provider "pxc" {
 ### Optional
 
 - `cloud_domain` (String) Instead of passing in an inventory file you can also pass the pve cloud domain in directly, this is useful for integrating external non pxc k8s clusters. For this target_cluster has to be also set.
+- `external_stack_name` (String) This is the central property for instantiating the provider for use in an non pxc related terraform configuration e.g. and non pxc kubernetes cluster.
 - `inventory` (String) Path to your proxmox cloud inventory yaml file.
 - `target_cluster` (String) Proxmox target cluster you want to use, only needed/allowed when passing an inventory of type pxc.cloud.pve_cloud_inv
