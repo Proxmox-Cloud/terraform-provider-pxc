@@ -182,23 +182,23 @@ func (r *GotifyAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", readUrl, nil)
 	if err != nil {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create request: %s", err))
-			return
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create request: %s", err))
+		return
 	}
 
 	httpReq.SetBasicAuth("admin", data.GotifyAdminPw.ValueString())
 
 	httpResp, err := client.Do(httpReq)
 	if err != nil {
-			resp.Diagnostics.AddError("Request error", fmt.Sprintf("Error calling gotify: %s", err))
-			return
+		resp.Diagnostics.AddError("Request error", fmt.Sprintf("Error calling gotify: %s", err))
+		return
 	}
 	
 	defer httpResp.Body.Close()
 
 	if httpResp.StatusCode != http.StatusOK {
-			resp.Diagnostics.AddError("Server Error", fmt.Sprintf("Gotify returned status %d", httpResp.StatusCode))
-			return
+		resp.Diagnostics.AddError("Server Error", fmt.Sprintf("Gotify returned status %d", httpResp.StatusCode))
+		return
 	}
 
 	bodyBytes, err := io.ReadAll(httpResp.Body)

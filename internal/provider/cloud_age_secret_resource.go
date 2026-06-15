@@ -158,8 +158,8 @@ func (r *CloudSecretAgeResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	// for some fucking reason calling types.StringValue is escaping our json string
-	// why the fuck this type is messing with jsonencoding when its a simple string type is beyond me
+	// for some obscure reason calling types.StringValue is escaping our json string
+	// why this type is messing with jsonencoding when its a simple string type is beyond me
 	rawSecretString := out.String()
 	data.PlainData = types.StringValue(rawSecretString)
 
