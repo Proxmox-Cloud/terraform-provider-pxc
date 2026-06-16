@@ -64,7 +64,7 @@ func (r *GotifyAppResource) Schema(ctx context.Context, req resource.SchemaReque
 				Required:            true,
 				MarkdownDescription: "Password for the root gotify admin user needed to make api calls.",
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(), // changes are irrelevant
+					stringplanmodifier.RequiresReplace(), // changes are irrelevant
 				},
 			},
 			"app_name": schema.StringAttribute{
@@ -77,7 +77,7 @@ func (r *GotifyAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			"allow_insecure": schema.BoolAttribute{
 				MarkdownDescription: "Allows connection to an insecure gotify serving a self signed certificate via https. Needed for e2e tests.",
 				Optional: 					 true,
-				Default: 						 booldefault.StaticBool(false),
+				Default: 					 booldefault.StaticBool(false),
 				Computed: 					 true,
 			},
 			"app_token": schema.StringAttribute{
@@ -131,7 +131,7 @@ func (r *GotifyAppResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
-  httpReq.SetBasicAuth("admin", data.GotifyAdminPw.ValueString())
+  	httpReq.SetBasicAuth("admin", data.GotifyAdminPw.ValueString())
 
 	httpResp, err := client.Do(httpReq)
 	if err != nil {
