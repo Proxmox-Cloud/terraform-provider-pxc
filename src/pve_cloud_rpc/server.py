@@ -563,7 +563,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         else:
             cert_config = json.loads(request.cert_config_json)
-            ec_csr = json.load(request.ec_csr_json)
+            ec_csr = json.loads(request.ec_csr_json)
 
             engine = await get_engine(online_pve_host)
 

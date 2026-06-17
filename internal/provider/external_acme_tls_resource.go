@@ -5,15 +5,14 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -30,21 +29,9 @@ type ExternalAcmeTlsResource struct {
 	cloudInventory CloudInventory
 }
 
-// ExternalAcmeTlsResourceModel describes the resource data model.
-type ECCSRModel struct {
-	Csr     types.String `tfsdk:"csr" json:"csr"`
-	Privkey types.String `tfsdk:"privkey" json:"privkey"`
-}
-
-type ACMEConfigModel struct {
-	Cn       types.String   `tfsdk:"cn" json:"cn"`
-	San      types.List `tfsdk:"san" json:"san"`
-	Workflow types.String   `tfsdk:"workflow" json:"workflow"`
-}
-
 type ExternalAcmeTlsResourceModel struct {
-	Config     ACMEConfigModel    `tfsdk:"config"`
-	EcCsr      ECCSRModel         `tfsdk:"ec_csr"`
+	ConfigJson     types.String    `tfsdk:"config_json"`
+	EcCsrJson      types.String    `tfsdk:"ec_csr_json"`
 }
 
 func (r *ExternalAcmeTlsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -57,28 +44,21 @@ func (r *ExternalAcmeTlsResource) Schema(ctx context.Context, req resource.Schem
 
 		Attributes: map[string]schema.Attribute{
 			// pxc formatted acme config input
-            "config": schema.SingleNestedAttribute{
+            "config_json": schema.StringAttribute{
                 Required: true,
-                Attributes: map[string]schema.Attribute{
-                    "cn":       schema.StringAttribute{Required: true},
-                    "san":      schema.ListAttribute{ElementType: types.StringType, Required: true},
-                    "workflow": schema.StringAttribute{Required: true},
-                },
+
 				// lazy replace
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
             },
 
             // terraform generated certificate signing request
-            "ec_csr": schema.SingleNestedAttribute{
+            "ec_csr_json": schema.StringAttribute{
                 Required: true,
-                Attributes: map[string]schema.Attribute{
-                    "csr":     schema.StringAttribute{Required: true, Sensitive: true},
-                    "privkey": schema.StringAttribute{Required: true, Sensitive: true},
-                },
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.RequiresReplace(),
+
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
             },
 		},
@@ -122,24 +102,12 @@ func (r *ExternalAcmeTlsResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	cBytes, err := json.Marshal(data.Config)
-	if err != nil {
-		resp.Diagnostics.AddError("Marshal error", fmt.Sprintf("Error marshalling pxc config object into json, got error: %s", err))
-		return
-	}
-
-	eBytes, err := json.Marshal(data.EcCsr)
-	if err != nil {
-		resp.Diagnostics.AddError("Marshal error", fmt.Sprintf("Error marshalling pxc config object into json, got error: %s", err))
-		return
-	}
-
 	cresp, err := client.CreateExternalAcmeTls(ctx, 
 		&pb.CreateExternalAcmeTlsRequest{
 			TargetPve: r.cloudInventory.TargetPve, 
 			StackFqdn: fmt.Sprintf("%s.%s", r.cloudInventory.StackName, r.cloudInventory.CloudDomain),
-			CertConfigJson: string(cBytes),
-			EcCsrJson: string(eBytes),
+			CertConfigJson: string(data.ConfigJson.ValueString()),
+			EcCsrJson: string(data.EcCsrJson.ValueString()),
 	})
 
 	if err != nil {
