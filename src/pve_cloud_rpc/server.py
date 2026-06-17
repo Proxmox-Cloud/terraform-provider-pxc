@@ -16,7 +16,6 @@ from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_pve_inventory)
 from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
 
-
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
 import pve_cloud_rpc.protos.health_pb2 as health_pb2
@@ -29,13 +28,13 @@ import pve_cloud_rpc.protos.health_pb2_grpc as health_pb2_grpc
 class PxrpcAsyncWrapper:
 
     def __init__(self, pxservice):
-        self.pxservice =  pxservice
+        self.pxservice = pxservice
 
     def __getattr__(self, method_name):
         async def async_wrapper(*args, **kwargs):
             return getattr(self.pxservice, method_name)(*args, **kwargs)
 
-        return  async_wrapper
+        return async_wrapper
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
@@ -76,7 +75,6 @@ async def get_cstr_cvars(online_pve_host):
     return patroni_cstr, cluster_vars
 
 
-
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
     def __init__(self):
@@ -91,7 +89,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
             cstr, cluster_vars = await get_cstr_cvars(online_pve_host)
             return PxrpcAsyncWrapper(PxrpcService(cluster_vars, cstr))
-        
+
         # if a jump host is specified we return from pxrpc remote service pool
         pxrpc_id = f"{online_pve_host}-{jump_host}"
 
@@ -207,7 +205,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         return cloud_pb2.CreateCloudSecretResponse(success=True)
 
-
     async def DeleteCloudSecret(self, request, context):
         target_pve = request.target_pve
         secret_name = request.secret_name
@@ -222,7 +219,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         await pxrpc.delete_cloud_secret(cloud_domain, secret_name)
 
         return cloud_pb2.DeleteCloudSecretResponse(success=True)
-
 
     async def GetCloudSecret(self, request, context):
         target_pve = request.target_pve
@@ -242,7 +238,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         return cloud_pb2.GetCloudSecretResponse(secret=secret_json)
 
-
     # fetch by type
     async def GetCloudSecrets(self, request, context):
         target_pve = request.target_pve
@@ -258,7 +253,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         secrets_json = await pxrpc.get_cloud_secrets(cloud_domain, secret_type)
 
         return cloud_pb2.GetCloudSecretsResponse(secrets=secrets_json)
-
 
     async def GetVmVarsBlake(self, request, context):
         blake_ids = request.blake_ids
@@ -280,7 +274,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
                 for blake_id, vm_vars in json.loads(return_vars).items()
             }
         )
-
 
     async def GetCephAccess(self, request, context):
         target_pve = request.target_pve
@@ -460,7 +453,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         return cloud_pb2.GetDnsARecordSetResponse(addrs=json.loads(addresses_json))
 
-
     async def CreateExternalAcmeTls(self, request, context):
         target_pve = request.target_pve
         stack_fqdn = request.stack_fqdn
@@ -475,7 +467,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         )
 
         return cloud_pb2.ExternalAcmeTlsResponse(success=True)
-
 
     async def DeleteExternalAcmeTls(self, request, context):
         target_pve = request.target_pve
