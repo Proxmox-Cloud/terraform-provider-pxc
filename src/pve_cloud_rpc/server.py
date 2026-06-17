@@ -11,7 +11,7 @@ import grpc
 import yaml
 from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
                                  get_ssh_remote_master_kubeconfig)
-from pve_cloud.cli.pxrpc import launch_pxrpc_async, PxrpcService
+from pve_cloud.cli.pxrpc import PxrpcService, launch_pxrpc_async
 from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
@@ -64,6 +64,7 @@ async def get_cstr_cvars(online_pve_host):
     patroni_cstr = f"postgresql+psycopg2://postgres:{patroni_pass}@{cluster_vars['pve_haproxy_floating_ip_internal']}:5000/pve_cloud?sslmode=disable"
 
     return patroni_cstr, cluster_vars
+
 
 async def get_engine(online_pve_host):
     async with asyncssh.connect(
