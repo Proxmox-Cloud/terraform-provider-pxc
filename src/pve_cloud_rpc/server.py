@@ -6,7 +6,6 @@ import sys
 from contextlib import AsyncExitStack
 
 import asyncssh
-import dns.resolver
 import grpc
 import yaml
 from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
@@ -16,16 +15,27 @@ from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
 from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
-from pve_cloud.orm.alchemy import (AcmeX509, ProxmoxCloudSecrets,
-                                   VirtualMachineVars)
-from sqlalchemy import create_engine, delete, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+
 
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
 import pve_cloud_rpc.protos.health_pb2 as health_pb2
 import pve_cloud_rpc.protos.health_pb2_grpc as health_pb2_grpc
+
+
+# make methods async callable for generic invoke
+# this is so we can call pxrpc methods generically for a locally
+# initialized instance
+class PxrpcAsyncWrapper:
+
+    def __init__(self, pxservice):
+        self.pxservice =  pxservice
+
+    def __getattr__(self, method_name):
+        async def async_wrapper(*args, **kwargs):
+            return getattr(self.pxservice, method_name)(*args, **kwargs)
+
+        return  async_wrapper
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
@@ -66,25 +76,6 @@ async def get_cstr_cvars(online_pve_host):
     return patroni_cstr, cluster_vars
 
 
-async def get_engine(online_pve_host):
-    async with asyncssh.connect(
-        online_pve_host, username="root", known_hosts=None
-    ) as conn:
-        cmd = await conn.run("cat /etc/pve/cloud/secrets/patroni.pass", check=True)
-        patroni_pass = cmd.stdout.rstrip()
-
-        # fetch cluster vars to get internal proxy ip
-        cmd = await conn.run("cat /etc/pve/cloud/cluster_vars.yaml", check=True)
-        cluster_vars = yaml.safe_load(cmd.stdout)
-
-    # build the connection string
-    patroni_cstr = f"postgresql+psycopg2://postgres:{patroni_pass}@{cluster_vars['pve_haproxy_floating_ip_internal']}:5000/pve_cloud?sslmode=disable"
-
-    # insert the secret
-    engine = create_engine(patroni_cstr)
-
-    return engine
-
 
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
@@ -92,8 +83,16 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         self._stack = AsyncExitStack()  # here we dump all our pxrpc connections
         self.pxrpcs = {}  # map to reuse pxrpc connections
 
-    # with this we reuse our pxrpc instances
+    # return local / remote instance of our pxrpcservice class
     async def get_pxrpc(self, online_pve_host, jump_host):
+        print("fetching pxrpc", online_pve_host, jump_host)
+        if not jump_host:
+            # return async wrapper of locally initted service
+
+            cstr, cluster_vars = await get_cstr_cvars(online_pve_host)
+            return PxrpcAsyncWrapper(PxrpcService(cluster_vars, cstr))
+        
+        # if a jump host is specified we return from pxrpc remote service pool
         pxrpc_id = f"{online_pve_host}-{jump_host}"
 
         if pxrpc_id not in self.pxrpcs:
@@ -115,6 +114,8 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
+        print("getting master k8s", online_pve_host, jump_host)
+
         if jump_host and not request.extra_control_plane_sans:
             await context.abort(
                 grpc.StatusCode.NOT_FOUND,
@@ -188,46 +189,24 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         online_pve_host, jump_host = get_online_pve_host_from_target_pve(
             target_pve, skip_py_cloud_check=True
         )
-        if jump_host:
-            # need to execute via pxrpc on jumphost
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            success = await pxrpc.inject_cloud_secret(
-                cloud_domain,
-                secret_name,
-                json.dumps(secret_data),
-                secret_type,
+        # need to execute via pxrpc on jumphost
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+
+        success = await pxrpc.inject_cloud_secret(
+            cloud_domain,
+            secret_name,
+            json.dumps(secret_data),
+            secret_type,
+        )
+
+        if not success:
+            return cloud_pb2.CreateCloudSecretResponse(
+                success=False, err_message="Unknown error in pxrpc."
             )
 
-            if not success:
-                return cloud_pb2.CreateCloudSecretResponse(
-                    success=False, err_message="Unknown error in pxrpc."
-                )
+        return cloud_pb2.CreateCloudSecretResponse(success=True)
 
-            return cloud_pb2.CreateCloudSecretResponse(success=True)
-
-        else:
-            engine = await get_engine(online_pve_host)
-
-            with Session(engine) as session:
-                try:
-                    session.add(
-                        ProxmoxCloudSecrets(
-                            cloud_domain=cloud_domain,
-                            secret_name=secret_name,
-                            secret_data=secret_data,
-                            secret_type=secret_type,
-                        )
-                    )
-                    session.commit()
-
-                except IntegrityError as e:
-                    session.rollback()
-                    return cloud_pb2.CreateCloudSecretResponse(
-                        success=False, err_message=str(e)
-                    )
-
-            return cloud_pb2.CreateCloudSecretResponse(success=True)
 
     async def DeleteCloudSecret(self, request, context):
         target_pve = request.target_pve
@@ -238,26 +217,12 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             target_pve, skip_py_cloud_check=True
         )
 
-        if jump_host:
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            await pxrpc.delete_cloud_secret(cloud_domain, secret_name)
+        await pxrpc.delete_cloud_secret(cloud_domain, secret_name)
 
-            return cloud_pb2.DeleteCloudSecretResponse(success=True)
+        return cloud_pb2.DeleteCloudSecretResponse(success=True)
 
-        else:
-            engine = await get_engine(online_pve_host)
-
-            with Session(engine) as session:
-                stmt = delete(ProxmoxCloudSecrets).where(
-                    ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                    ProxmoxCloudSecrets.secret_name == secret_name,
-                )
-
-                result = session.execute(stmt)
-                session.commit()
-
-            return cloud_pb2.DeleteCloudSecretResponse(success=True)
 
     async def GetCloudSecret(self, request, context):
         target_pve = request.target_pve
@@ -268,32 +233,15 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             target_pve, skip_py_cloud_check=True
         )
 
-        if jump_host:
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            secret_json = await pxrpc.get_cloud_secret(cloud_domain, secret_name)
+        secret_json = await pxrpc.get_cloud_secret(cloud_domain, secret_name)
 
-            if secret_json == "":
-                return cloud_pb2.GetCloudSecretResponse()
+        if secret_json == "":
+            return cloud_pb2.GetCloudSecretResponse()
 
-            return cloud_pb2.GetCloudSecretResponse(secret=secret_json)
+        return cloud_pb2.GetCloudSecretResponse(secret=secret_json)
 
-        else:
-            engine = await get_engine(online_pve_host)
-
-            with Session(engine) as session:
-                stmt = select(ProxmoxCloudSecrets).where(
-                    ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                    ProxmoxCloudSecrets.secret_name == secret_name,
-                )
-                record = session.scalars(stmt).first()
-
-            if not record:
-                return cloud_pb2.GetCloudSecretResponse()
-
-            return cloud_pb2.GetCloudSecretResponse(
-                secret=json.dumps(record.secret_data)
-            )
 
     # fetch by type
     async def GetCloudSecrets(self, request, context):
@@ -305,28 +253,12 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             target_pve, skip_py_cloud_check=True
         )
 
-        if jump_host:
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            secrets_json = await pxrpc.get_cloud_secrets(cloud_domain, secret_type)
+        secrets_json = await pxrpc.get_cloud_secrets(cloud_domain, secret_type)
 
-            return cloud_pb2.GetCloudSecretsResponse(secrets=secrets_json)
+        return cloud_pb2.GetCloudSecretsResponse(secrets=secrets_json)
 
-        else:
-            engine = await get_engine(online_pve_host)
-
-            with Session(engine) as session:
-                stmt = select(ProxmoxCloudSecrets).where(
-                    ProxmoxCloudSecrets.cloud_domain == cloud_domain,
-                    ProxmoxCloudSecrets.secret_type == secret_type,
-                )
-                records = session.scalars(stmt).all()
-
-            return cloud_pb2.GetCloudSecretsResponse(
-                secrets=json.dumps(
-                    {record.secret_name: record.secret_data for record in records}
-                )
-            )
 
     async def GetVmVarsBlake(self, request, context):
         blake_ids = request.blake_ids
@@ -337,34 +269,18 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             target_pve, skip_py_cloud_check=True
         )
 
-        if jump_host:
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            blake_ids_json = json.dumps(list(blake_ids))
-            return_vars = await pxrpc.get_vm_vars_blake(blake_ids_json, cloud_domain)
+        blake_ids_json = json.dumps(list(blake_ids))
+        return_vars = await pxrpc.get_vm_vars_blake(blake_ids_json, cloud_domain)
 
-            return cloud_pb2.GetVmVarsBlakeResponse(
-                blake_id_vars={
-                    blake_id: json.dumps(vm_vars)
-                    for blake_id, vm_vars in json.loads(return_vars).items()
-                }
-            )
+        return cloud_pb2.GetVmVarsBlakeResponse(
+            blake_id_vars={
+                blake_id: json.dumps(vm_vars)
+                for blake_id, vm_vars in json.loads(return_vars).items()
+            }
+        )
 
-        else:
-            engine = await get_engine(online_pve_host)
-
-            with Session(engine) as session:
-                stmt = select(VirtualMachineVars).where(
-                    VirtualMachineVars.blake_id.in_(blake_ids),
-                    VirtualMachineVars.cloud_domain == cloud_domain,
-                )
-                records = session.scalars(stmt).all()
-
-            return cloud_pb2.GetVmVarsBlakeResponse(
-                blake_id_vars={
-                    entry.blake_id: json.dumps(entry.vm_vars) for entry in records
-                }
-            )
 
     async def GetCephAccess(self, request, context):
         target_pve = request.target_pve
@@ -538,29 +454,12 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             target_pve, skip_py_cloud_check=True
         )
 
-        if jump_host:
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            addresses_json = await pxrpc.get_dns_a_record(host)
+        addresses_json = await pxrpc.get_dns_a_record(host)
 
-            return cloud_pb2.GetDnsARecordSetResponse(addrs=json.loads(addresses_json))
+        return cloud_pb2.GetDnsARecordSetResponse(addrs=json.loads(addresses_json))
 
-        else:
-            cluster_vars = get_cluster_vars(online_pve_host, jump_host)
-
-            resolver = dns.resolver.Resolver()
-            resolver.nameservers = [
-                cluster_vars["bind_master_ip"],
-                cluster_vars["bind_slave_ip"],
-            ]
-
-            try:
-                answers = resolver.resolve(host, "A")
-                addrs = [rdata.address for rdata in answers]
-            except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-                addrs = []
-
-            return cloud_pb2.GetDnsARecordSetResponse(addrs=addrs)
 
     async def CreateExternalAcmeTls(self, request, context):
         target_pve = request.target_pve
@@ -569,36 +468,14 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             target_pve, skip_py_cloud_check=True
         )
 
-        if jump_host:
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            await pxrpc.create_external_acme_tls(
-                stack_fqdn, request.cert_config_json, request.ec_csr_json
-            )
+        await pxrpc.create_external_acme_tls(
+            stack_fqdn, request.cert_config_json, request.ec_csr_json
+        )
 
-            return cloud_pb2.ExternalAcmeTlsResponse(success=True)
+        return cloud_pb2.ExternalAcmeTlsResponse(success=True)
 
-        else:
-            cert_config = json.loads(request.cert_config_json)
-            ec_csr = json.loads(request.ec_csr_json)
-
-            engine = await get_engine(online_pve_host)
-
-            with Session(engine) as session:
-                try:
-                    session.add(
-                        AcmeX509(
-                            stack_fqdn=stack_fqdn, config=cert_config, ec_csr=ec_csr
-                        )
-                    )
-                    session.commit()
-
-                    return cloud_pb2.ExternalAcmeTlsResponse(success=True)
-                except IntegrityError as e:
-                    session.rollback()
-                    return cloud_pb2.ExternalAcmeTlsResponse(
-                        success=False, err_message=str(e)
-                    )
 
     async def DeleteExternalAcmeTls(self, request, context):
         target_pve = request.target_pve
@@ -607,30 +484,11 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             target_pve, skip_py_cloud_check=True
         )
 
-        if jump_host:
-            pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-            await pxrpc.delete_external_acme_tls(stack_fqdn)
+        await pxrpc.delete_external_acme_tls(stack_fqdn)
 
-            return cloud_pb2.ExternalAcmeTlsResponse(success=True)
-
-        else:
-            engine = await get_engine(online_pve_host)
-
-            with Session(engine) as session:
-                try:
-                    stmt = delete(AcmeX509).where(
-                        AcmeX509.stack_fqdn == stack_fqdn,
-                    )
-                    result = session.execute(stmt)
-                    session.commit()
-
-                    return cloud_pb2.ExternalAcmeTlsResponse(success=True)
-                except IntegrityError as e:
-                    session.rollback()
-                    return cloud_pb2.ExternalAcmeTlsResponse(
-                        success=False, err_message=str(e)
-                    )
+        return cloud_pb2.ExternalAcmeTlsResponse(success=True)
 
 
 async def serve():
