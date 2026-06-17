@@ -17,23 +17,5 @@ Request proxmox cloud tls certificate from external cluster.
 
 ### Required
 
-- `config` (Attributes) (see [below for nested schema](#nestedatt--config))
-- `ec_csr` (Attributes) (see [below for nested schema](#nestedatt--ec_csr))
-
-<a id="nestedatt--config"></a>
-### Nested Schema for `config`
-
-Required:
-
-- `cn` (String)
-- `san` (List of String)
-- `workflow` (String)
-
-
-<a id="nestedatt--ec_csr"></a>
-### Nested Schema for `ec_csr`
-
-Required:
-
-- `csr` (String, Sensitive)
-- `privkey` (String, Sensitive)
+- `config_json` (String)
+- `ec_csr_json` (String)
