@@ -1,6 +1,6 @@
 module github.com/Proxmox-Cloud/terraform-provider-pxc
 
-go 1.24.0
+go 1.25.0
 
 require (
 	filippo.io/age v1.3.1
@@ -32,6 +32,7 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.21.0
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect

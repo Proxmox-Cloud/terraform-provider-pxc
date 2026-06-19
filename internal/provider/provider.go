@@ -372,6 +372,7 @@ func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource 
 		NewPveGotifyTargetResource,
 		NewPveGraphiteExporterResource,
 		NewExternalAcmeTlsResource,
+		NewHelmMirrorResource,
 	}
 }
 
