@@ -193,9 +193,12 @@ func (r *HelmMirrorResource) ModifyPlan(ctx context.Context, req resource.Modify
 		return // do nothing on destroy
 	}
 
+	if !req.State.Raw.IsNull() {
+		return // when the resource already exists we just return as is
+	}	
+
 	// lookahead if mirror already exists, then we return oci mirror url, otherwise we set repository_out to source_repository 
 	// so helm_release resources can do their Read() call properly
-
 	var data HelmMirrorResourceModel
 
 	// Read Terraform plan data into the model
