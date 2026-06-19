@@ -18,3 +18,4 @@ Get the admin kubeconfig for authenticating k8s related providers. Target kubern
 ### Read-Only
 
 - `config` (String, Sensitive) Kubeconfig
+- `registries` (String, Sensitive) Mirror registry if discovered.
