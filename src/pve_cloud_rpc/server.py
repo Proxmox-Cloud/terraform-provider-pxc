@@ -1,9 +1,9 @@
 import asyncio
 import json
 import os
+import re
 import signal
 import sys
-import re
 from contextlib import AsyncExitStack
 
 import asyncssh
@@ -487,17 +487,23 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
     async def CreateCNameRecord(self, request, context):
         target_pve = request.target_pve
-        online_pve_host, jump_host = get_online_pve_host_from_target_pve(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
+            target_pve, skip_py_cloud_check=True
+        )
 
         pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
-        success, error = await pxrpc.create_cname_record(request.zone, request.name, request.cname, request.ttl)
+        success, error = await pxrpc.create_cname_record(
+            request.zone, request.name, request.cname, request.ttl
+        )
 
         return cloud_pb2.CNameRecordResponse(success=success, err_message=error)
 
     async def DeleteCNameRecord(self, request, context):
         target_pve = request.target_pve
-        online_pve_host, jump_host = get_online_pve_host_from_target_pve(target_pve, skip_py_cloud_check=True)
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
+            target_pve, skip_py_cloud_check=True
+        )
 
         pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
 
@@ -505,7 +511,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         return cloud_pb2.CNameRecordResponse(success=success, err_message=error)
 
-    
+
 async def serve():
     # patch the current asyncio loop to allow pxc async ssh calls
     asyncio.get_running_loop()._pxc_ssh_managed = True
