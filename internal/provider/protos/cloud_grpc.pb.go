@@ -38,6 +38,8 @@ const (
 	CloudService_GetDnsARecordSet_FullMethodName      = "/protos.CloudService/GetDnsARecordSet"
 	CloudService_CreateExternalAcmeTls_FullMethodName = "/protos.CloudService/CreateExternalAcmeTls"
 	CloudService_DeleteExternalAcmeTls_FullMethodName = "/protos.CloudService/DeleteExternalAcmeTls"
+	CloudService_CreateCNameRecord_FullMethodName     = "/protos.CloudService/CreateCNameRecord"
+	CloudService_DeleteCNameRecord_FullMethodName     = "/protos.CloudService/DeleteCNameRecord"
 )
 
 // CloudServiceClient is the client API for CloudService service.
@@ -63,6 +65,8 @@ type CloudServiceClient interface {
 	GetDnsARecordSet(ctx context.Context, in *GetDnsARecordSetRequest, opts ...grpc.CallOption) (*GetDnsARecordSetResponse, error)
 	CreateExternalAcmeTls(ctx context.Context, in *CreateExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error)
 	DeleteExternalAcmeTls(ctx context.Context, in *DeleteExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error)
+	CreateCNameRecord(ctx context.Context, in *CreateCNameRecordRequest, opts ...grpc.CallOption) (*CNameRecordResponse, error)
+	DeleteCNameRecord(ctx context.Context, in *DeleteCNameRecordRequest, opts ...grpc.CallOption) (*CNameRecordResponse, error)
 }
 
 type cloudServiceClient struct {
@@ -263,6 +267,26 @@ func (c *cloudServiceClient) DeleteExternalAcmeTls(ctx context.Context, in *Dele
 	return out, nil
 }
 
+func (c *cloudServiceClient) CreateCNameRecord(ctx context.Context, in *CreateCNameRecordRequest, opts ...grpc.CallOption) (*CNameRecordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CNameRecordResponse)
+	err := c.cc.Invoke(ctx, CloudService_CreateCNameRecord_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudServiceClient) DeleteCNameRecord(ctx context.Context, in *DeleteCNameRecordRequest, opts ...grpc.CallOption) (*CNameRecordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CNameRecordResponse)
+	err := c.cc.Invoke(ctx, CloudService_DeleteCNameRecord_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudServiceServer is the server API for CloudService service.
 // All implementations must embed UnimplementedCloudServiceServer
 // for forward compatibility.
@@ -286,6 +310,8 @@ type CloudServiceServer interface {
 	GetDnsARecordSet(context.Context, *GetDnsARecordSetRequest) (*GetDnsARecordSetResponse, error)
 	CreateExternalAcmeTls(context.Context, *CreateExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error)
 	DeleteExternalAcmeTls(context.Context, *DeleteExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error)
+	CreateCNameRecord(context.Context, *CreateCNameRecordRequest) (*CNameRecordResponse, error)
+	DeleteCNameRecord(context.Context, *DeleteCNameRecordRequest) (*CNameRecordResponse, error)
 	mustEmbedUnimplementedCloudServiceServer()
 }
 
@@ -352,6 +378,12 @@ func (UnimplementedCloudServiceServer) CreateExternalAcmeTls(context.Context, *C
 }
 func (UnimplementedCloudServiceServer) DeleteExternalAcmeTls(context.Context, *DeleteExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteExternalAcmeTls not implemented")
+}
+func (UnimplementedCloudServiceServer) CreateCNameRecord(context.Context, *CreateCNameRecordRequest) (*CNameRecordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCNameRecord not implemented")
+}
+func (UnimplementedCloudServiceServer) DeleteCNameRecord(context.Context, *DeleteCNameRecordRequest) (*CNameRecordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteCNameRecord not implemented")
 }
 func (UnimplementedCloudServiceServer) mustEmbedUnimplementedCloudServiceServer() {}
 func (UnimplementedCloudServiceServer) testEmbeddedByValue()                      {}
@@ -716,6 +748,42 @@ func _CloudService_DeleteExternalAcmeTls_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudService_CreateCNameRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCNameRecordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).CreateCNameRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_CreateCNameRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).CreateCNameRecord(ctx, req.(*CreateCNameRecordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudService_DeleteCNameRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCNameRecordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).DeleteCNameRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_DeleteCNameRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).DeleteCNameRecord(ctx, req.(*DeleteCNameRecordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudService_ServiceDesc is the grpc.ServiceDesc for CloudService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -798,6 +866,14 @@ var CloudService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteExternalAcmeTls",
 			Handler:    _CloudService_DeleteExternalAcmeTls_Handler,
+		},
+		{
+			MethodName: "CreateCNameRecord",
+			Handler:    _CloudService_CreateCNameRecord_Handler,
+		},
+		{
+			MethodName: "DeleteCNameRecord",
+			Handler:    _CloudService_DeleteCNameRecord_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

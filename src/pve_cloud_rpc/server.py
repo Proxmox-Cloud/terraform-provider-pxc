@@ -3,6 +3,7 @@ import json
 import os
 import signal
 import sys
+import re
 from contextlib import AsyncExitStack
 
 import asyncssh
@@ -69,10 +70,13 @@ async def get_cstr_cvars(online_pve_host):
         cmd = await conn.run("cat /etc/pve/cloud/cluster_vars.yaml", check=True)
         cluster_vars = yaml.safe_load(cmd.stdout)
 
+        cmd = await conn.run("cat /etc/pve/cloud/secrets/internal.key", check=True)
+        internal_key = re.search(r'secret\s+"([^"]+)";', cmd.stdout).group(1)
+
     # build the connection string
     patroni_cstr = f"postgresql+psycopg2://postgres:{patroni_pass}@{cluster_vars['pve_haproxy_floating_ip_internal']}:5000/pve_cloud?sslmode=disable"
 
-    return patroni_cstr, cluster_vars
+    return patroni_cstr, cluster_vars, internal_key
 
 
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
@@ -87,8 +91,8 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         if not jump_host:
             # return async wrapper of locally initted service
 
-            cstr, cluster_vars = await get_cstr_cvars(online_pve_host)
-            return PxrpcAsyncWrapper(PxrpcService(cluster_vars, cstr))
+            cstr, cluster_vars, internal_key = await get_cstr_cvars(online_pve_host)
+            return PxrpcAsyncWrapper(PxrpcService(cluster_vars, cstr, internal_key))
 
         # if a jump host is specified we return from pxrpc remote service pool
         pxrpc_id = f"{online_pve_host}-{jump_host}"
@@ -481,7 +485,27 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         return cloud_pb2.ExternalAcmeTlsResponse(success=True)
 
+    async def CreateCNameRecord(self, request, context):
+        target_pve = request.target_pve
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(target_pve, skip_py_cloud_check=True)
 
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+
+        success, error = await pxrpc.create_cname_record(request.zone, request.name, request.cname, request.ttl)
+
+        return cloud_pb2.CNameRecordResponse(success=success, err_message=error)
+
+    async def DeleteCNameRecord(self, request, context):
+        target_pve = request.target_pve
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(target_pve, skip_py_cloud_check=True)
+
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+
+        success, error = await pxrpc.delete_cname_record(request.zone, request.name)
+
+        return cloud_pb2.CNameRecordResponse(success=success, err_message=error)
+
+    
 async def serve():
     # patch the current asyncio loop to allow pxc async ssh calls
     asyncio.get_running_loop()._pxc_ssh_managed = True

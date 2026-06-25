@@ -129,6 +129,16 @@ class CloudServiceStub:
                 request_serializer=cloud__pb2.DeleteExternalAcmeTlsRequest.SerializeToString,
                 response_deserializer=cloud__pb2.ExternalAcmeTlsResponse.FromString,
                 _registered_method=True)
+        self.CreateCNameRecord = channel.unary_unary(
+                '/protos.CloudService/CreateCNameRecord',
+                request_serializer=cloud__pb2.CreateCNameRecordRequest.SerializeToString,
+                response_deserializer=cloud__pb2.CNameRecordResponse.FromString,
+                _registered_method=True)
+        self.DeleteCNameRecord = channel.unary_unary(
+                '/protos.CloudService/DeleteCNameRecord',
+                request_serializer=cloud__pb2.DeleteCNameRecordRequest.SerializeToString,
+                response_deserializer=cloud__pb2.CNameRecordResponse.FromString,
+                _registered_method=True)
 
 
 class CloudServiceServicer:
@@ -248,6 +258,18 @@ class CloudServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateCNameRecord(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteCNameRecord(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CloudServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -345,6 +367,16 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     servicer.DeleteExternalAcmeTls,
                     request_deserializer=cloud__pb2.DeleteExternalAcmeTlsRequest.FromString,
                     response_serializer=cloud__pb2.ExternalAcmeTlsResponse.SerializeToString,
+            ),
+            'CreateCNameRecord': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateCNameRecord,
+                    request_deserializer=cloud__pb2.CreateCNameRecordRequest.FromString,
+                    response_serializer=cloud__pb2.CNameRecordResponse.SerializeToString,
+            ),
+            'DeleteCNameRecord': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteCNameRecord,
+                    request_deserializer=cloud__pb2.DeleteCNameRecordRequest.FromString,
+                    response_serializer=cloud__pb2.CNameRecordResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -860,6 +892,60 @@ class CloudService:
             '/protos.CloudService/DeleteExternalAcmeTls',
             cloud__pb2.DeleteExternalAcmeTlsRequest.SerializeToString,
             cloud__pb2.ExternalAcmeTlsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateCNameRecord(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/CreateCNameRecord',
+            cloud__pb2.CreateCNameRecordRequest.SerializeToString,
+            cloud__pb2.CNameRecordResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteCNameRecord(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/DeleteCNameRecord',
+            cloud__pb2.DeleteCNameRecordRequest.SerializeToString,
+            cloud__pb2.CNameRecordResponse.FromString,
             options,
             channel_credentials,
             insecure,

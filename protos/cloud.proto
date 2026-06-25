@@ -24,6 +24,8 @@ service CloudService {
   rpc GetDnsARecordSet(GetDnsARecordSetRequest) returns (GetDnsARecordSetResponse);
   rpc CreateExternalAcmeTls(CreateExternalAcmeTlsRequest) returns (ExternalAcmeTlsResponse);
   rpc DeleteExternalAcmeTls(DeleteExternalAcmeTlsRequest) returns (ExternalAcmeTlsResponse);
+  rpc CreateCNameRecord(CreateCNameRecordRequest) returns (CNameRecordResponse);
+  rpc DeleteCNameRecord(DeleteCNameRecordRequest) returns (CNameRecordResponse);
 }
 
 message GetPveInventoryRequest {
@@ -208,6 +210,26 @@ message DeleteExternalAcmeTlsRequest {
 }
 
 message ExternalAcmeTlsResponse {
+  bool success = 1;
+  string err_message = 2;
+}
+
+
+message CreateCNameRecordRequest {
+  string target_pve = 1;
+  string zone = 2;
+  string name = 3;
+  string cname = 4;
+  int32 ttl = 5;
+}
+
+message DeleteCNameRecordRequest {
+  string target_pve = 1;
+  string zone = 2;
+  string name = 3;
+}
+
+message CNameRecordResponse {
   bool success = 1;
   string err_message = 2;
 }

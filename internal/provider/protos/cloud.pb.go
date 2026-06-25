@@ -1967,6 +1967,194 @@ func (x *ExternalAcmeTlsResponse) GetErrMessage() string {
 	return ""
 }
 
+type CreateCNameRecordRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	Zone          string                 `protobuf:"bytes,2,opt,name=zone,proto3" json:"zone,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Cname         string                 `protobuf:"bytes,4,opt,name=cname,proto3" json:"cname,omitempty"`
+	Ttl           int32                  `protobuf:"varint,5,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateCNameRecordRequest) Reset() {
+	*x = CreateCNameRecordRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateCNameRecordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCNameRecordRequest) ProtoMessage() {}
+
+func (x *CreateCNameRecordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCNameRecordRequest.ProtoReflect.Descriptor instead.
+func (*CreateCNameRecordRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *CreateCNameRecordRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+func (x *CreateCNameRecordRequest) GetZone() string {
+	if x != nil {
+		return x.Zone
+	}
+	return ""
+}
+
+func (x *CreateCNameRecordRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateCNameRecordRequest) GetCname() string {
+	if x != nil {
+		return x.Cname
+	}
+	return ""
+}
+
+func (x *CreateCNameRecordRequest) GetTtl() int32 {
+	if x != nil {
+		return x.Ttl
+	}
+	return 0
+}
+
+type DeleteCNameRecordRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetPve     string                 `protobuf:"bytes,1,opt,name=target_pve,json=targetPve,proto3" json:"target_pve,omitempty"`
+	Zone          string                 `protobuf:"bytes,2,opt,name=zone,proto3" json:"zone,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCNameRecordRequest) Reset() {
+	*x = DeleteCNameRecordRequest{}
+	mi := &file_protos_cloud_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCNameRecordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCNameRecordRequest) ProtoMessage() {}
+
+func (x *DeleteCNameRecordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCNameRecordRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCNameRecordRequest) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *DeleteCNameRecordRequest) GetTargetPve() string {
+	if x != nil {
+		return x.TargetPve
+	}
+	return ""
+}
+
+func (x *DeleteCNameRecordRequest) GetZone() string {
+	if x != nil {
+		return x.Zone
+	}
+	return ""
+}
+
+func (x *DeleteCNameRecordRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type CNameRecordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	ErrMessage    string                 `protobuf:"bytes,2,opt,name=err_message,json=errMessage,proto3" json:"err_message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CNameRecordResponse) Reset() {
+	*x = CNameRecordResponse{}
+	mi := &file_protos_cloud_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CNameRecordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CNameRecordResponse) ProtoMessage() {}
+
+func (x *CNameRecordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_cloud_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CNameRecordResponse.ProtoReflect.Descriptor instead.
+func (*CNameRecordResponse) Descriptor() ([]byte, []int) {
+	return file_protos_cloud_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *CNameRecordResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CNameRecordResponse) GetErrMessage() string {
+	if x != nil {
+		return x.ErrMessage
+	}
+	return ""
+}
+
 var File_protos_cloud_proto protoreflect.FileDescriptor
 
 const file_protos_cloud_proto_rawDesc = "" +
@@ -2127,7 +2315,23 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"\x17ExternalAcmeTlsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1f\n" +
 	"\verr_message\x18\x02 \x01(\tR\n" +
-	"errMessage2\xd3\f\n" +
+	"errMessage\"\x89\x01\n" +
+	"\x18CreateCNameRecordRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x12\n" +
+	"\x04zone\x18\x02 \x01(\tR\x04zone\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
+	"\x05cname\x18\x04 \x01(\tR\x05cname\x12\x10\n" +
+	"\x03ttl\x18\x05 \x01(\x05R\x03ttl\"a\n" +
+	"\x18DeleteCNameRecordRequest\x12\x1d\n" +
+	"\n" +
+	"target_pve\x18\x01 \x01(\tR\ttargetPve\x12\x12\n" +
+	"\x04zone\x18\x02 \x01(\tR\x04zone\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"P\n" +
+	"\x13CNameRecordResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1f\n" +
+	"\verr_message\x18\x02 \x01(\tR\n" +
+	"errMessage2\xfb\r\n" +
 	"\fCloudService\x12R\n" +
 	"\x13GetMasterKubeconfig\x12\x1c.protos.GetKubeconfigRequest\x1a\x1d.protos.GetKubeconfigResponse\x12O\n" +
 	"\x0eGetClusterVars\x12\x1d.protos.GetClusterVarsRequest\x1a\x1e.protos.GetClusterVarsResponse\x12[\n" +
@@ -2147,7 +2351,9 @@ const file_protos_cloud_proto_rawDesc = "" +
 	"\x0eGetVmVarsBlake\x12\x1d.protos.GetVmVarsBlakeRequest\x1a\x1e.protos.GetVmVarsBlakeResponse\x12U\n" +
 	"\x10GetDnsARecordSet\x12\x1f.protos.GetDnsARecordSetRequest\x1a .protos.GetDnsARecordSetResponse\x12^\n" +
 	"\x15CreateExternalAcmeTls\x12$.protos.CreateExternalAcmeTlsRequest\x1a\x1f.protos.ExternalAcmeTlsResponse\x12^\n" +
-	"\x15DeleteExternalAcmeTls\x12$.protos.DeleteExternalAcmeTlsRequest\x1a\x1f.protos.ExternalAcmeTlsResponseBQZOgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
+	"\x15DeleteExternalAcmeTls\x12$.protos.DeleteExternalAcmeTlsRequest\x1a\x1f.protos.ExternalAcmeTlsResponse\x12R\n" +
+	"\x11CreateCNameRecord\x12 .protos.CreateCNameRecordRequest\x1a\x1b.protos.CNameRecordResponse\x12R\n" +
+	"\x11DeleteCNameRecord\x12 .protos.DeleteCNameRecordRequest\x1a\x1b.protos.CNameRecordResponseBQZOgithub.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos;protosb\x06proto3"
 
 var (
 	file_protos_cloud_proto_rawDescOnce sync.Once
@@ -2162,7 +2368,7 @@ func file_protos_cloud_proto_rawDescGZIP() []byte {
 }
 
 var file_protos_cloud_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_protos_cloud_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
 var file_protos_cloud_proto_goTypes = []any{
 	(GetSshKeyRequest_KeyType)(0),        // 0: protos.GetSshKeyRequest.KeyType
 	(*GetPveInventoryRequest)(nil),       // 1: protos.GetPveInventoryRequest
@@ -2202,15 +2408,18 @@ var file_protos_cloud_proto_goTypes = []any{
 	(*CreateExternalAcmeTlsRequest)(nil), // 35: protos.CreateExternalAcmeTlsRequest
 	(*DeleteExternalAcmeTlsRequest)(nil), // 36: protos.DeleteExternalAcmeTlsRequest
 	(*ExternalAcmeTlsResponse)(nil),      // 37: protos.ExternalAcmeTlsResponse
-	nil,                                  // 38: protos.GetProxmoxApiRequest.GetArgsEntry
-	nil,                                  // 39: protos.CreateProxmoxApiRequest.CreateArgsEntry
-	nil,                                  // 40: protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
+	(*CreateCNameRecordRequest)(nil),     // 38: protos.CreateCNameRecordRequest
+	(*DeleteCNameRecordRequest)(nil),     // 39: protos.DeleteCNameRecordRequest
+	(*CNameRecordResponse)(nil),          // 40: protos.CNameRecordResponse
+	nil,                                  // 41: protos.GetProxmoxApiRequest.GetArgsEntry
+	nil,                                  // 42: protos.CreateProxmoxApiRequest.CreateArgsEntry
+	nil,                                  // 43: protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
 }
 var file_protos_cloud_proto_depIdxs = []int32{
-	38, // 0: protos.GetProxmoxApiRequest.get_args:type_name -> protos.GetProxmoxApiRequest.GetArgsEntry
-	39, // 1: protos.CreateProxmoxApiRequest.create_args:type_name -> protos.CreateProxmoxApiRequest.CreateArgsEntry
+	41, // 0: protos.GetProxmoxApiRequest.get_args:type_name -> protos.GetProxmoxApiRequest.GetArgsEntry
+	42, // 1: protos.CreateProxmoxApiRequest.create_args:type_name -> protos.CreateProxmoxApiRequest.CreateArgsEntry
 	0,  // 2: protos.GetSshKeyRequest.key_type:type_name -> protos.GetSshKeyRequest.KeyType
-	40, // 3: protos.GetVmVarsBlakeResponse.blake_id_vars:type_name -> protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
+	43, // 3: protos.GetVmVarsBlakeResponse.blake_id_vars:type_name -> protos.GetVmVarsBlakeResponse.BlakeIdVarsEntry
 	15, // 4: protos.CloudService.GetMasterKubeconfig:input_type -> protos.GetKubeconfigRequest
 	17, // 5: protos.CloudService.GetClusterVars:input_type -> protos.GetClusterVarsRequest
 	19, // 6: protos.CloudService.GetCloudFileSecret:input_type -> protos.GetCloudFileSecretRequest
@@ -2230,27 +2439,31 @@ var file_protos_cloud_proto_depIdxs = []int32{
 	33, // 20: protos.CloudService.GetDnsARecordSet:input_type -> protos.GetDnsARecordSetRequest
 	35, // 21: protos.CloudService.CreateExternalAcmeTls:input_type -> protos.CreateExternalAcmeTlsRequest
 	36, // 22: protos.CloudService.DeleteExternalAcmeTls:input_type -> protos.DeleteExternalAcmeTlsRequest
-	16, // 23: protos.CloudService.GetMasterKubeconfig:output_type -> protos.GetKubeconfigResponse
-	18, // 24: protos.CloudService.GetClusterVars:output_type -> protos.GetClusterVarsResponse
-	20, // 25: protos.CloudService.GetCloudFileSecret:output_type -> protos.GetCloudFileSecretResponse
-	22, // 26: protos.CloudService.CreateCloudSecret:output_type -> protos.CreateCloudSecretResponse
-	24, // 27: protos.CloudService.DeleteCloudSecret:output_type -> protos.DeleteCloudSecretResponse
-	26, // 28: protos.CloudService.GetCloudSecret:output_type -> protos.GetCloudSecretResponse
-	28, // 29: protos.CloudService.GetCloudSecrets:output_type -> protos.GetCloudSecretsResponse
-	14, // 30: protos.CloudService.GetCephAccess:output_type -> protos.GetCephAccessResponse
-	12, // 31: protos.CloudService.GetSshKey:output_type -> protos.GetSshKeyResponse
-	6,  // 32: protos.CloudService.GetProxmoxApi:output_type -> protos.GetProxmoxApiResponse
-	8,  // 33: protos.CloudService.CreateProxmoxApi:output_type -> protos.CreateProxmoxApiResponse
-	10, // 34: protos.CloudService.DeleteProxmoxApi:output_type -> protos.DeleteProxmoxApiResponse
-	4,  // 35: protos.CloudService.GetProxmoxHost:output_type -> protos.GetProxmoxHostResponse
-	2,  // 36: protos.CloudService.GetPveInventory:output_type -> protos.GetPveInventoryResponse
-	32, // 37: protos.CloudService.GetCloudDomain:output_type -> protos.GetCloudDomainResponse
-	30, // 38: protos.CloudService.GetVmVarsBlake:output_type -> protos.GetVmVarsBlakeResponse
-	34, // 39: protos.CloudService.GetDnsARecordSet:output_type -> protos.GetDnsARecordSetResponse
-	37, // 40: protos.CloudService.CreateExternalAcmeTls:output_type -> protos.ExternalAcmeTlsResponse
-	37, // 41: protos.CloudService.DeleteExternalAcmeTls:output_type -> protos.ExternalAcmeTlsResponse
-	23, // [23:42] is the sub-list for method output_type
-	4,  // [4:23] is the sub-list for method input_type
+	38, // 23: protos.CloudService.CreateCNameRecord:input_type -> protos.CreateCNameRecordRequest
+	39, // 24: protos.CloudService.DeleteCNameRecord:input_type -> protos.DeleteCNameRecordRequest
+	16, // 25: protos.CloudService.GetMasterKubeconfig:output_type -> protos.GetKubeconfigResponse
+	18, // 26: protos.CloudService.GetClusterVars:output_type -> protos.GetClusterVarsResponse
+	20, // 27: protos.CloudService.GetCloudFileSecret:output_type -> protos.GetCloudFileSecretResponse
+	22, // 28: protos.CloudService.CreateCloudSecret:output_type -> protos.CreateCloudSecretResponse
+	24, // 29: protos.CloudService.DeleteCloudSecret:output_type -> protos.DeleteCloudSecretResponse
+	26, // 30: protos.CloudService.GetCloudSecret:output_type -> protos.GetCloudSecretResponse
+	28, // 31: protos.CloudService.GetCloudSecrets:output_type -> protos.GetCloudSecretsResponse
+	14, // 32: protos.CloudService.GetCephAccess:output_type -> protos.GetCephAccessResponse
+	12, // 33: protos.CloudService.GetSshKey:output_type -> protos.GetSshKeyResponse
+	6,  // 34: protos.CloudService.GetProxmoxApi:output_type -> protos.GetProxmoxApiResponse
+	8,  // 35: protos.CloudService.CreateProxmoxApi:output_type -> protos.CreateProxmoxApiResponse
+	10, // 36: protos.CloudService.DeleteProxmoxApi:output_type -> protos.DeleteProxmoxApiResponse
+	4,  // 37: protos.CloudService.GetProxmoxHost:output_type -> protos.GetProxmoxHostResponse
+	2,  // 38: protos.CloudService.GetPveInventory:output_type -> protos.GetPveInventoryResponse
+	32, // 39: protos.CloudService.GetCloudDomain:output_type -> protos.GetCloudDomainResponse
+	30, // 40: protos.CloudService.GetVmVarsBlake:output_type -> protos.GetVmVarsBlakeResponse
+	34, // 41: protos.CloudService.GetDnsARecordSet:output_type -> protos.GetDnsARecordSetResponse
+	37, // 42: protos.CloudService.CreateExternalAcmeTls:output_type -> protos.ExternalAcmeTlsResponse
+	37, // 43: protos.CloudService.DeleteExternalAcmeTls:output_type -> protos.ExternalAcmeTlsResponse
+	40, // 44: protos.CloudService.CreateCNameRecord:output_type -> protos.CNameRecordResponse
+	40, // 45: protos.CloudService.DeleteCNameRecord:output_type -> protos.CNameRecordResponse
+	25, // [25:46] is the sub-list for method output_type
+	4,  // [4:25] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -2267,7 +2480,7 @@ func file_protos_cloud_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protos_cloud_proto_rawDesc), len(file_protos_cloud_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   40,
+			NumMessages:   43,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

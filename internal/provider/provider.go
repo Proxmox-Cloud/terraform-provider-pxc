@@ -265,8 +265,8 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	
 	// set log pipes
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
-    cmd.Stdout = logFile
-    cmd.Stderr = logFile
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
 	
 	if err := cmd.Start(); err != nil {
 		logFile.Close()
@@ -373,6 +373,7 @@ func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource 
 		NewPveGraphiteExporterResource,
 		NewExternalAcmeTlsResource,
 		NewHelmMirrorResource,
+		NewDnsCnameRecordResource,
 	}
 }
 
