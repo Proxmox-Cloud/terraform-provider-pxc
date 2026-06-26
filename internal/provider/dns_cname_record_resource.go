@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	pb "github.com/Proxmox-Cloud/terraform-provider-pxc/internal/provider/protos"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -105,6 +106,11 @@ func (r *DnsCnameRecordResource) Create(ctx context.Context, req resource.Create
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !strings.HasSuffix(data.CName.ValueString(), ".") {
+		resp.Diagnostics.AddError("Validation Error", fmt.Sprintf("CNAME record must be a fully qualified domain name (FQDN) and end with a dot, got: %s", data.CName.ValueString()))
 		return
 	}
 
