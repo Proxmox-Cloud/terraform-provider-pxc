@@ -5,6 +5,7 @@ import re
 import signal
 import sys
 from contextlib import AsyncExitStack
+from ipaddress import ip_address
 
 import asyncssh
 import grpc
@@ -16,6 +17,7 @@ from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
 from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
+from pve_cloud_schemas.validate import validate_cluster_vars
 
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
@@ -69,6 +71,7 @@ async def get_cstr_cvars(online_pve_host):
         # fetch cluster vars to get internal proxy ip
         cmd = await conn.run("cat /etc/pve/cloud/cluster_vars.yaml", check=True)
         cluster_vars = yaml.safe_load(cmd.stdout)
+        validate_cluster_vars(cluster_vars)
 
         cmd = await conn.run("cat /etc/pve/cloud/secrets/internal.key", check=True)
         internal_key = re.search(r'secret\s+"([^"]+)";', cmd.stdout).group(1)
@@ -455,7 +458,10 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
         addresses_json = await pxrpc.get_dns_a_record(host)
 
-        return cloud_pb2.GetDnsARecordSetResponse(addrs=json.loads(addresses_json))
+        # return addresses sorted to get predicable behaviour on [0] access
+        addresses_sorted = sorted(json.loads(addresses_json), key=ip_address)
+
+        return cloud_pb2.GetDnsARecordSetResponse(addrs=addresses_sorted)
 
     async def CreateExternalAcmeTls(self, request, context):
         target_pve = request.target_pve
