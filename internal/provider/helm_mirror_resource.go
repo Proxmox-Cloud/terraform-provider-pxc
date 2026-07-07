@@ -273,6 +273,14 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
+	if adminCreds == (HarborMirrorCreds{}) {
+		// no credentials found, set input == output registry and return
+		data.RepositoryOut = data.SourceRepository
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+		return
+	}
+
 	// not yet mirrored
 	if repoStrVal.Equal(data.SourceRepository) {
 		// chart could not be found, we assume its because not mirrored
