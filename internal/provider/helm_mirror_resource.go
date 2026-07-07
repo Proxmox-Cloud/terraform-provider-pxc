@@ -332,9 +332,10 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 			fmt.Sprintf("oci://%s/cloud-helm-mirror/%s", adminCreds.HarborHost, data.SourceName.ValueString()),
 			"--username", adminCreds.FullName, "--password", adminCreds.Secret,
 		)
-		_, err = pushChart.CombinedOutput()
+		// todo: if this pattern works use it everywhere for printing errors
+		stdoutStderr, err := pushChart.CombinedOutput()
 		if err != nil {
-			resp.Diagnostics.AddError("Helm Error", fmt.Sprintf("Error pushing chart, got error: %s", err))
+			resp.Diagnostics.AddError("Helm Error", fmt.Sprintf("Error pushing chart, got error: %s", stdoutStderr))
 			return
 		}
 	}
