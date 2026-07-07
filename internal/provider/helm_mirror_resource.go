@@ -294,7 +294,7 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 
 			// add original helm repo and download chart
 			repoAdd := exec.Command("helm", "repo", "add", data.SourceName.ValueString(), data.SourceRepository.ValueString())
-			_, err = repoAdd.Output()
+			_, err = repoAdd.CombinedOutput()
 			if err != nil {
 				resp.Diagnostics.AddError("Helm Error", fmt.Sprintf("Error adding helm repo, got error: %s", err))
 				helmCliMutex.Unlock()
@@ -302,7 +302,7 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 			}
 
 			repoUpdate := exec.Command("helm", "repo", "update", data.SourceName.ValueString())
-			_, err = repoUpdate.Output()
+			_, err = repoUpdate.CombinedOutput()
 			if err != nil {
 				resp.Diagnostics.AddError("Helm Error", fmt.Sprintf("Error updating helm repo, got error: %s", err))
 				helmCliMutex.Unlock()
@@ -311,7 +311,7 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 			helmCliMutex.Unlock() // finished with helm operations that may only run synchronous
 
 			pullChart := exec.Command("helm", "pull", fmt.Sprintf("%s/%s", data.SourceName.ValueString(), data.Chart.ValueString()), "--version", data.Version.ValueString(), "--destination", tempDir)
-			_, err = pullChart.Output()
+			_, err = pullChart.CombinedOutput()
 			if err != nil {
 				resp.Diagnostics.AddError("Helm Error", fmt.Sprintf("Error downloading chart, got error: %s", err))
 				return
@@ -320,7 +320,7 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 		}else {
 			// on oci repos we pull directly from the repo
 			pullChart := exec.Command("helm", "pull", fmt.Sprintf("%s/%s", data.SourceRepository.ValueString(), data.Chart.ValueString()), "--version", data.Version.ValueString(), "--destination", tempDir)
-			_, err = pullChart.Output()
+			_, err = pullChart.CombinedOutput()
 			if err != nil {
 				resp.Diagnostics.AddError("Helm Error", fmt.Sprintf("Error downloading chart, got error: %s", err))
 				return
@@ -332,7 +332,7 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 			fmt.Sprintf("oci://%s/cloud-helm-mirror/%s", adminCreds.HarborHost, data.SourceName.ValueString()),
 			"--username", adminCreds.FullName, "--password", adminCreds.Secret,
 		)
-		_, err = pushChart.Output()
+		_, err = pushChart.CombinedOutput()
 		if err != nil {
 			resp.Diagnostics.AddError("Helm Error", fmt.Sprintf("Error pushing chart, got error: %s", err))
 			return
