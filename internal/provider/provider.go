@@ -43,6 +43,9 @@ type PxcProvider struct {
 // PxcProviderModel describes the provider data model.
 type PxcProviderModel struct {
 	InventoryPath types.String `tfsdk:"inventory"`
+	// todo: this property is used in conjunction with cloud_domain. it should be properly evaluated for external
+	// uses of the collection / provider if we truly need this or can just pick the first cluster available
+	// reducing the configuration complexity. Maybe resources / datasources then have to be disabled to allow this.
 	TargetCluster types.String `tfsdk:"target_cluster"`
 
 	// with these two + target_cluster we can use our pxc infrastructure in non pxc k8s clusters tf configs
