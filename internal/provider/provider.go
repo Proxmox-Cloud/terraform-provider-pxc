@@ -99,16 +99,32 @@ type PveCloudInventory struct {
 	PveCloudDomain string `yaml:"pve_cloud_domain"`
 }
 
+// generic external hosts inventory type (connecting external non pxc hosts to a pxc cloud via inventory / terraform)
+// todo: in the future, as this is also used for the k0s implementation maybe there should be a concept as
+// typed host groups, that we can derive some safety from
+type ExternalHostsInventory struct {
+	PveCloudDomain string `yaml:"pve_cloud_domain"`
+	TargetCluster string `yaml:"target_cluster"`
+	ExternalStackName string `yaml:"external_stack_name"`
+
+	HostGroups map[string]map[string]map[string]any `yaml:"host_groups"`
+}
+
+
 // this gets passed down to resources and they can dynamically pick / err what they need
 type CloudInventory struct {
 	Plugin	string 	`yaml:"plugin"`
 	TargetPve string
 	StackName string
+
+	// this gets set by the grpc server, the only thing that has to come
+	// from yaml inventory parsing is target pve and stack name
 	CloudDomain string
 
 	// nullables
 	KubesprayInventory *KubesprayInventory
 	PveCloudInventory *PveCloudInventory
+	ExternalHostsInventory *ExternalHostsInventory
 }
 
 
@@ -219,6 +235,24 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 				cloudInv.StackName = kubeInv.StackName
 
 				cloudInv.KubesprayInventory = &kubeInv
+
+			case "pxc.cloud.ext_hosts_inv":
+
+				var extHostsInv ExternalHostsInventory
+				err = yaml.Unmarshal(yamlFile, &extHostsInv)
+
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Error Parsing Inventory YAML",
+						"Could not unmarshal YAML: "+err.Error(),
+					)
+					return
+				}
+
+				cloudInv.TargetPve = fmt.Sprintf("%s.%s", extHostsInv.TargetCluster, extHostsInv.PveCloudDomain)
+				cloudInv.StackName = extHostsInv.ExternalStackName
+
+				cloudInv.ExternalHostsInventory = &extHostsInv
 
 			default:
 				resp.Diagnostics.AddError(
@@ -383,6 +417,7 @@ func (p *PxcProvider) Resources(ctx context.Context) []func() resource.Resource 
 func (p *PxcProvider) EphemeralResources(ctx context.Context) []func() ephemeral.EphemeralResource {
 	return []func() ephemeral.EphemeralResource{
 		NewKubeconfigEphemeralResource,
+		NewK0sKubeconfigEphemeralResource,
 	}
 }
 

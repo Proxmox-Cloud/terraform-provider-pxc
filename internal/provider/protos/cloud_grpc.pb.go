@@ -40,6 +40,7 @@ const (
 	CloudService_DeleteExternalAcmeTls_FullMethodName = "/protos.CloudService/DeleteExternalAcmeTls"
 	CloudService_CreateCNameRecord_FullMethodName     = "/protos.CloudService/CreateCNameRecord"
 	CloudService_DeleteCNameRecord_FullMethodName     = "/protos.CloudService/DeleteCNameRecord"
+	CloudService_GetK0SKubeconfig_FullMethodName      = "/protos.CloudService/GetK0sKubeconfig"
 )
 
 // CloudServiceClient is the client API for CloudService service.
@@ -67,6 +68,7 @@ type CloudServiceClient interface {
 	DeleteExternalAcmeTls(ctx context.Context, in *DeleteExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error)
 	CreateCNameRecord(ctx context.Context, in *CreateCNameRecordRequest, opts ...grpc.CallOption) (*CNameRecordResponse, error)
 	DeleteCNameRecord(ctx context.Context, in *DeleteCNameRecordRequest, opts ...grpc.CallOption) (*CNameRecordResponse, error)
+	GetK0SKubeconfig(ctx context.Context, in *GetK0SKubeconfigRequest, opts ...grpc.CallOption) (*GetKubeconfigResponse, error)
 }
 
 type cloudServiceClient struct {
@@ -287,6 +289,16 @@ func (c *cloudServiceClient) DeleteCNameRecord(ctx context.Context, in *DeleteCN
 	return out, nil
 }
 
+func (c *cloudServiceClient) GetK0SKubeconfig(ctx context.Context, in *GetK0SKubeconfigRequest, opts ...grpc.CallOption) (*GetKubeconfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKubeconfigResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetK0SKubeconfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudServiceServer is the server API for CloudService service.
 // All implementations must embed UnimplementedCloudServiceServer
 // for forward compatibility.
@@ -312,6 +324,7 @@ type CloudServiceServer interface {
 	DeleteExternalAcmeTls(context.Context, *DeleteExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error)
 	CreateCNameRecord(context.Context, *CreateCNameRecordRequest) (*CNameRecordResponse, error)
 	DeleteCNameRecord(context.Context, *DeleteCNameRecordRequest) (*CNameRecordResponse, error)
+	GetK0SKubeconfig(context.Context, *GetK0SKubeconfigRequest) (*GetKubeconfigResponse, error)
 	mustEmbedUnimplementedCloudServiceServer()
 }
 
@@ -384,6 +397,9 @@ func (UnimplementedCloudServiceServer) CreateCNameRecord(context.Context, *Creat
 }
 func (UnimplementedCloudServiceServer) DeleteCNameRecord(context.Context, *DeleteCNameRecordRequest) (*CNameRecordResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteCNameRecord not implemented")
+}
+func (UnimplementedCloudServiceServer) GetK0SKubeconfig(context.Context, *GetK0SKubeconfigRequest) (*GetKubeconfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetK0SKubeconfig not implemented")
 }
 func (UnimplementedCloudServiceServer) mustEmbedUnimplementedCloudServiceServer() {}
 func (UnimplementedCloudServiceServer) testEmbeddedByValue()                      {}
@@ -784,6 +800,24 @@ func _CloudService_DeleteCNameRecord_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudService_GetK0SKubeconfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetK0SKubeconfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetK0SKubeconfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetK0SKubeconfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetK0SKubeconfig(ctx, req.(*GetK0SKubeconfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudService_ServiceDesc is the grpc.ServiceDesc for CloudService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -874,6 +908,10 @@ var CloudService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteCNameRecord",
 			Handler:    _CloudService_DeleteCNameRecord_Handler,
+		},
+		{
+			MethodName: "GetK0sKubeconfig",
+			Handler:    _CloudService_GetK0SKubeconfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

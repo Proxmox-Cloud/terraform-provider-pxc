@@ -16,7 +16,7 @@ from pve_cloud.cli.pxrpc import PxrpcService, launch_pxrpc_async
 from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
-from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async
+from pve_cloud.lib.ssh import cleanup_jumphosts_async, get_jump_host_async, connect_host_async
 from pve_cloud_schemas.validate import validate_cluster_vars
 
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
@@ -516,6 +516,15 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         success, error = await pxrpc.delete_cname_record(request.zone, request.name)
 
         return cloud_pb2.CNameRecordResponse(success=success, err_message=error)
+
+    async def GetK0sKubeconfig(self, request, context):
+        # currently only supports direct connect
+        # todo: this should either throw a warning or get a better implementation in edge k0s scenario
+        async with connect_host_async(request.k0s_host, user=request.k0s_user) as conn:
+            cmd = await conn.run("sudo k0s kubeconfig admin", check=True)
+
+            return cloud_pb2.GetKubeconfigResponse(config=cmd.stdout)
+
 
 
 async def serve():

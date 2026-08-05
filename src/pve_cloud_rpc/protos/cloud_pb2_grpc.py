@@ -139,6 +139,11 @@ class CloudServiceStub:
                 request_serializer=cloud__pb2.DeleteCNameRecordRequest.SerializeToString,
                 response_deserializer=cloud__pb2.CNameRecordResponse.FromString,
                 _registered_method=True)
+        self.GetK0sKubeconfig = channel.unary_unary(
+                '/protos.CloudService/GetK0sKubeconfig',
+                request_serializer=cloud__pb2.GetK0sKubeconfigRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetKubeconfigResponse.FromString,
+                _registered_method=True)
 
 
 class CloudServiceServicer:
@@ -270,6 +275,12 @@ class CloudServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetK0sKubeconfig(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CloudServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -377,6 +388,11 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     servicer.DeleteCNameRecord,
                     request_deserializer=cloud__pb2.DeleteCNameRecordRequest.FromString,
                     response_serializer=cloud__pb2.CNameRecordResponse.SerializeToString,
+            ),
+            'GetK0sKubeconfig': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetK0sKubeconfig,
+                    request_deserializer=cloud__pb2.GetK0sKubeconfigRequest.FromString,
+                    response_serializer=cloud__pb2.GetKubeconfigResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -946,6 +962,33 @@ class CloudService:
             '/protos.CloudService/DeleteCNameRecord',
             cloud__pb2.DeleteCNameRecordRequest.SerializeToString,
             cloud__pb2.CNameRecordResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetK0sKubeconfig(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetK0sKubeconfig',
+            cloud__pb2.GetK0sKubeconfigRequest.SerializeToString,
+            cloud__pb2.GetKubeconfigResponse.FromString,
             options,
             channel_credentials,
             insecure,

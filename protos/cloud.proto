@@ -26,6 +26,7 @@ service CloudService {
   rpc DeleteExternalAcmeTls(DeleteExternalAcmeTlsRequest) returns (ExternalAcmeTlsResponse);
   rpc CreateCNameRecord(CreateCNameRecordRequest) returns (CNameRecordResponse);
   rpc DeleteCNameRecord(DeleteCNameRecordRequest) returns (CNameRecordResponse);
+  rpc GetK0sKubeconfig(GetK0sKubeconfigRequest) returns (GetKubeconfigResponse);
 }
 
 message GetPveInventoryRequest {
@@ -232,4 +233,9 @@ message DeleteCNameRecordRequest {
 message CNameRecordResponse {
   bool success = 1;
   string err_message = 2;
+}
+
+message GetK0sKubeconfigRequest {
+  string k0s_host = 1;
+  string k0s_user = 2;
 }
