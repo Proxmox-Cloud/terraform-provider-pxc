@@ -70,45 +70,15 @@ func (r *K0sKubeconfigEphemeralResource) Configure(ctx context.Context, req ephe
 		return
 	}
 
-	// here we check if the defined hosts contain our ungrouped.k0s_single hosts with ansible host and user vars
-	// todo: this should be made more generic as to not repeat the schema over and over agian.
-	// it would be nice to have some generic schema definitions that can be loaded in multiple languages and validated against
-	// this currently also exists in the pxc cloud collection under playbooks/files
-	ungrouped, ok := cloudInv.ExternalHostsInventory.HostGroups["ungrouped"]
+	// here we check if the typed k0s edge hostgroup is present
+	_, ok = cloudInv.ExternalHostsInventory.TypedHostGroups["k0s_edge"]
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unsupported with provider config",
-			"The use of this resource requires external hosts inventory file to have the ungrouped host group.",
+			"The use of this resource requires external hosts inventory to have the typed k0s_edge hostgroup set.",
 		)
 		return
 	}
-
-	k0sSingle, ok := ungrouped["k0s_single"]
-	if !ok {
-
-		resp.Diagnostics.AddError(
-			"Unsupported with provider config",
-			"The use of this resource requires external hosts inventory file to have a host named k0s_single in the ungrouped host group.",
-		)
-		return
-	}
-
-	if _, ok := k0sSingle["ansible_host"]; !ok {
-		resp.Diagnostics.AddError(
-			"Unsupported with provider config",
-			"The use of this resource requires external hosts inventory file to have the host k0s_single with the ansible_host variable defined.",
-		)
-		return
-	}
-
-	if _, ok := k0sSingle["ansible_user"]; !ok {
-		resp.Diagnostics.AddError(
-			"Unsupported with provider config",
-			"The use of this resource requires external hosts inventory file to have the host k0s_single with the ansible_user variable defined.",
-		)
-		return
-	}
-	// todo: this should seriously be refactored into using the existing schema in pxc cloud collection
 
 	r.cloudInventory = cloudInv
 }
@@ -129,13 +99,13 @@ func (r *K0sKubeconfigEphemeralResource) Open(ctx context.Context, req ephemeral
 	}
 
 	// first we validate if the custom ext hosts inventory file actually has a k0s_single host defined
-	ansibleHost, ok := r.cloudInventory.ExternalHostsInventory.HostGroups["ungrouped"]["k0s_single"]["ansible_host"].(string)
+	ansibleHost, ok := r.cloudInventory.ExternalHostsInventory.TypedHostGroups["k0s_edge"]["k0s_single"]["ansible_host"].(string)
 	if !ok {
 		resp.Diagnostics.AddError("Inventory Error", fmt.Sprintf("Unable to cast ansible_host for k0s_single, got error: %s", err))
 		return
 	}
 
-	ansibleUser, ok := r.cloudInventory.ExternalHostsInventory.HostGroups["ungrouped"]["k0s_single"]["ansible_user"].(string)
+	ansibleUser, ok := r.cloudInventory.ExternalHostsInventory.TypedHostGroups["k0s_edge"]["k0s_single"]["ansible_user"].(string)
 	if !ok {
 		resp.Diagnostics.AddError("Inventory Error", fmt.Sprintf("Unable to cast ansible_user for k0s_single, got error: %s", err))
 		return
