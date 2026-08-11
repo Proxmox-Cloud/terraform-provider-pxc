@@ -108,6 +108,7 @@ type ExternalHostsInventory struct {
 	ExternalStackName string `yaml:"external_stack_name"`
 
 	HostGroups map[string]map[string]map[string]any `yaml:"host_groups"`
+	TypedHostGroups map[string]map[string]map[string]any `yaml:"typed_host_groups"`
 }
 
 
