@@ -12,33 +12,17 @@ import grpc
 import yaml
 from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
                                  get_ssh_remote_master_kubeconfig)
-from pve_cloud.cli.pxrpc import PxrpcService, launch_pxrpc_async
+from pve_cloud.cli.pxrpc import PxrpcService, launch_pxrpc_async, get_simple_pxrpc
 from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
 from pve_cloud.lib.ssh import (cleanup_jumphosts_async, connect_host_async,
                                get_jump_host_async)
-from pve_cloud_schemas.validate import validate_cluster_vars
 
 import pve_cloud_rpc.protos.cloud_pb2 as cloud_pb2
 import pve_cloud_rpc.protos.cloud_pb2_grpc as cloud_pb2_grpc
 import pve_cloud_rpc.protos.health_pb2 as health_pb2
 import pve_cloud_rpc.protos.health_pb2_grpc as health_pb2_grpc
-
-
-# make methods async callable for generic invoke
-# this is so we can call pxrpc methods generically for a locally
-# initialized instance
-class PxrpcAsyncWrapper:
-
-    def __init__(self, pxservice):
-        self.pxservice = pxservice
-
-    def __getattr__(self, method_name):
-        async def async_wrapper(*args, **kwargs):
-            return getattr(self.pxservice, method_name)(*args, **kwargs)
-
-        return async_wrapper
 
 
 class HealthServicer(health_pb2_grpc.HealthServicer):
@@ -62,26 +46,6 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
             )  # go provider process will kill
 
 
-async def get_cstr_cvars(online_pve_host):
-    async with asyncssh.connect(
-        online_pve_host, username="root", known_hosts=None
-    ) as conn:
-        cmd = await conn.run("cat /etc/pve/cloud/secrets/patroni.pass", check=True)
-        patroni_pass = cmd.stdout.rstrip()
-
-        # fetch cluster vars to get internal proxy ip
-        cmd = await conn.run("cat /etc/pve/cloud/cluster_vars.yaml", check=True)
-        cluster_vars = yaml.safe_load(cmd.stdout)
-        validate_cluster_vars(cluster_vars)
-
-        cmd = await conn.run("cat /etc/pve/cloud/secrets/internal.key", check=True)
-        internal_key = re.search(r'secret\s+"([^"]+)";', cmd.stdout).group(1)
-
-    # build the connection string
-    patroni_cstr = f"postgresql+psycopg2://postgres:{patroni_pass}@{cluster_vars['pve_haproxy_floating_ip_internal']}:5000/pve_cloud?sslmode=disable"
-
-    return patroni_cstr, cluster_vars, internal_key
-
 
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
 
@@ -92,11 +56,6 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
     # return local / remote instance of our pxrpcservice class
     async def get_pxrpc(self, online_pve_host, jump_host):
         print("fetching pxrpc", online_pve_host, jump_host)
-        if not jump_host:
-            # return async wrapper of locally initted service
-
-            cstr, cluster_vars, internal_key = await get_cstr_cvars(online_pve_host)
-            return PxrpcAsyncWrapper(PxrpcService(cluster_vars, cstr, internal_key))
 
         # if a jump host is specified we return from pxrpc remote service pool
         pxrpc_id = f"{online_pve_host}-{jump_host}"
@@ -104,7 +63,7 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
         if pxrpc_id not in self.pxrpcs:
             print(f"launching new pxrpc server {online_pve_host}, {jump_host}")
             self.pxrpcs[pxrpc_id] = await self._stack.enter_async_context(
-                launch_pxrpc_async(jump_host, online_pve_host)
+                get_simple_pxrpc(online_pve_host, jump_host)
             )
 
         return self.pxrpcs[pxrpc_id]
