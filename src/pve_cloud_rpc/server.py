@@ -1,7 +1,6 @@
 import asyncio
 import json
 import os
-import re
 import signal
 import sys
 from contextlib import AsyncExitStack
@@ -12,7 +11,8 @@ import grpc
 import yaml
 from pve_cloud.cli.pvclu import (get_ssh_master_kubeconfig,
                                  get_ssh_remote_master_kubeconfig)
-from pve_cloud.cli.pxrpc import PxrpcService, launch_pxrpc_async, get_simple_pxrpc
+from pve_cloud.cli.pxrpc import (PxrpcService, get_simple_pxrpc,
+                                 launch_pxrpc_async)
 from pve_cloud.lib.inventory import (get_cloud_domain, get_cluster_vars,
                                      get_online_pve_host_from_target_pve,
                                      get_pve_inventory)
@@ -44,7 +44,6 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
                 status=health_pb2.HealthCheckResponse.MISSMATCH,
                 error_message=f"py-pve-cloud version check failed with: {e}",
             )  # go provider process will kill
-
 
 
 class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
