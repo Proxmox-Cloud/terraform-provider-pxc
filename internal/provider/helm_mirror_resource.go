@@ -188,6 +188,8 @@ func (r *HelmMirrorResource) getMirroredIfExists(ctx context.Context, client pb.
 }
 
 // abuse the plan step to already check for a presently mirrored artifact
+// this is the only place we fetch the mirrored artifact, only on subsequent runs
+// does terraform return the mirror!
 func (r *HelmMirrorResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.Plan.Raw.IsNull() {
 		return // do nothing on destroy
@@ -258,9 +260,6 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 	_, err = exec.LookPath("skopeo")
 	if err != nil {
 		resp.Diagnostics.AddWarning("Setup warning", fmt.Sprintf("Skopeo cli was not found installed, did you run pxc.cloud.setup_control_node? Got error: %s", err))
-		
-		// set input == output regsitry and return
-		data.RepositoryOut = data.SourceRepository
 		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 		return
@@ -274,8 +273,7 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	if adminCreds == (HarborMirrorCreds{}) {
-		// no credentials found, set input == output registry and return
-		data.RepositoryOut = data.SourceRepository
+		// no credentials found
 		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 		return
@@ -348,10 +346,8 @@ func (r *HelmMirrorResource) Create(ctx context.Context, req resource.CreateRequ
 		}
 	}
 
-	// mirror complete / already mirrored, we return the oci mirror repo from our harbor
-	// authentication to this happens via kubeconfig resource registry discovery
-	tflog.Info(ctx, fmt.Sprintf("Setting repository out: oci://%s/cloud-helm-mirror/%s", adminCreds.HarborHost, data.SourceName.ValueString()))
-	data.RepositoryOut = types.StringValue(fmt.Sprintf("oci://%s/cloud-helm-mirror/%s", adminCreds.HarborHost, data.SourceName.ValueString()))
+	// we leave the repository out variable as is, since terraform doesnt allow changes in the create phase
+	// that differ from what we wrote in modify plan
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
