@@ -2,6 +2,10 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
+	"path/filepath"
+	"regexp"
+	"strings"
 	"syscall"
 
 	"fmt"
@@ -128,6 +132,10 @@ type CloudInventory struct {
 	ExternalHostsInventory *ExternalHostsInventory
 }
 
+type TFMirrorSecret struct {
+	Host     string `json:"host"`
+	Password string `json:"password"`
+}
 
 func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data PxcProviderModel
@@ -391,6 +399,109 @@ func (p *PxcProvider) Configure(ctx context.Context, req provider.ConfigureReque
 
 		// set the domain for all resources to use
 		cloudInv.CloudDomain = cresp.Domain
+
+		// we also look if there is a terraform mirror registry present for the cloud
+		// if we are not in an e2e scenario, check via cli conf env var, e2e uses a filesystem mirror instead
+		// todo: maybe fire this in a coroutine?
+		if pytestCurrent == "" && p.version != "dev" {
+
+			dresp, err := cclient.GetCloudSecret(ctx, &pb.GetCloudSecretRequest{CloudDomain: cloudInv.CloudDomain, TargetPve: cloudInv.TargetPve, SecretName: fmt.Sprintf("%s-tf-mirror-discv", cloudInv.CloudDomain)})
+			if err != nil {
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to get cloud secret, got error: %s", err))
+				return
+			}
+
+			if dresp.Secret == "" {
+				break // no terraform mirror discovered
+			}
+
+			var mirrorSecret TFMirrorSecret
+
+			err = json.Unmarshal([]byte(dresp.Secret), &mirrorSecret)
+
+			if err != nil {
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error unmarshalling mirror secret, got error: %s", err))
+				return
+			}
+
+			home, err := os.UserHomeDir()
+			if err != nil {
+				tflog.Info(ctx, "Failed to get user home dir!")
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to get user home dir, got error: %s", err))
+				return
+			}
+
+			tfRcPath := filepath.Join(home, ".terraformrc")
+
+			_, err = os.Stat(tfRcPath)
+
+			if err == nil {
+				// regex replace / insert network_mirror and credentials
+				tfRcData, err := os.ReadFile(tfRcPath)
+
+				if err != nil {
+					tflog.Info(ctx, "Failed to read existing .terraformrc!")
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to read .terraformrc, got error: %s", err))
+					return
+				}
+
+				tfRcContent := string(tfRcData)
+
+				rcContentChanged := false
+
+				installRe := regexp.MustCompile(`(?ms)(.*provider_installation\s*\{\s*\n)(.*)`)
+
+				if !strings.Contains(tfRcContent, "network_mirror") {
+					tfRcContent = installRe.ReplaceAllString(tfRcContent, fmt.Sprintf(`${1}
+network_mirror {
+url = "https://%s/v1/mirror/"
+}
+
+${2}`, mirrorSecret.Host))
+					rcContentChanged = true
+				}
+
+				credentialsRe := regexp.MustCompile(fmt.Sprintf(`^credentials\s+"%s"`, mirrorSecret.Host))
+
+				if !credentialsRe.MatchString(tfRcContent) {
+					tfRcContent += fmt.Sprintf(`
+credentials "%s" {
+token = "%s"
+}
+
+`, mirrorSecret.Host, mirrorSecret.Password)
+
+					rcContentChanged = true
+				}
+
+				if rcContentChanged {
+					err = os.WriteFile(tfRcPath, []byte(tfRcContent), 0600)
+				}
+
+
+			} else if os.IsNotExist(err) {
+				// write fresh config from scratch
+				rcContent := strings.TrimSpace(fmt.Sprintf(`
+provider_installation {
+network_mirror {
+url = "https://%s/v1/mirror/"
+}
+}
+
+credentials "%s" {
+token = "%s"
+}`, mirrorSecret.Host, mirrorSecret.Host, mirrorSecret.Password))
+
+				err = os.WriteFile(tfRcPath, []byte(rcContent), 0600)
+
+			} else {
+				tflog.Info(ctx, "Failed get os stats for .terraformrc!")
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to .terraformrc stats, got error: %s", err))
+				return
+			}
+
+		}
+
 		break 
 	}
 
