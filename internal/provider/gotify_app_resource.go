@@ -196,6 +196,11 @@ func (r *GotifyAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	
 	defer httpResp.Body.Close()
 
+	if httpResp.StatusCode == http.StatusUnauthorized {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	if httpResp.StatusCode != http.StatusOK {
 		resp.Diagnostics.AddError("Server Error", fmt.Sprintf("Gotify returned status %d", httpResp.StatusCode))
 		return
