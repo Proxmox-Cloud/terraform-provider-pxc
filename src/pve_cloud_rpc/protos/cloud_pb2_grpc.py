@@ -114,6 +114,11 @@ class CloudServiceStub:
                 request_serializer=cloud__pb2.GetVmVarsBlakeRequest.SerializeToString,
                 response_deserializer=cloud__pb2.GetVmVarsBlakeResponse.FromString,
                 _registered_method=True)
+        self.GetPxcInventories = channel.unary_unary(
+                '/protos.CloudService/GetPxcInventories',
+                request_serializer=cloud__pb2.GetPxcInventoriesRequest.SerializeToString,
+                response_deserializer=cloud__pb2.GetPxcInventoriesResponse.FromString,
+                _registered_method=True)
         self.GetDnsARecordSet = channel.unary_unary(
                 '/protos.CloudService/GetDnsARecordSet',
                 request_serializer=cloud__pb2.GetDnsARecordSetRequest.SerializeToString,
@@ -245,6 +250,12 @@ class CloudServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetPxcInventories(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetDnsARecordSet(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -363,6 +374,11 @@ def add_CloudServiceServicer_to_server(servicer, server):
                     servicer.GetVmVarsBlake,
                     request_deserializer=cloud__pb2.GetVmVarsBlakeRequest.FromString,
                     response_serializer=cloud__pb2.GetVmVarsBlakeResponse.SerializeToString,
+            ),
+            'GetPxcInventories': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPxcInventories,
+                    request_deserializer=cloud__pb2.GetPxcInventoriesRequest.FromString,
+                    response_serializer=cloud__pb2.GetPxcInventoriesResponse.SerializeToString,
             ),
             'GetDnsARecordSet': grpc.unary_unary_rpc_method_handler(
                     servicer.GetDnsARecordSet,
@@ -827,6 +843,33 @@ class CloudService:
             '/protos.CloudService/GetVmVarsBlake',
             cloud__pb2.GetVmVarsBlakeRequest.SerializeToString,
             cloud__pb2.GetVmVarsBlakeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPxcInventories(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/protos.CloudService/GetPxcInventories',
+            cloud__pb2.GetPxcInventoriesRequest.SerializeToString,
+            cloud__pb2.GetPxcInventoriesResponse.FromString,
             options,
             channel_credentials,
             insecure,

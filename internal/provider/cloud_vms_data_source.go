@@ -97,8 +97,9 @@ func (d *CloudVmsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	// extract blake ids for fetch call
+	// extract blake ids and stack names for fetch calls
 	var blakeIds []string
+	var stackNames []string
 	for _, machine := range machines {
 		if val, ok := machine["tags"]; ok {
 			if tagStr, isString := val.(string); isString {
@@ -108,7 +109,10 @@ func (d *CloudVmsDataSource) Read(ctx context.Context, req datasource.ReadReques
 				for _, tag := range tags {
 					if strings.HasSuffix(tag, "-blake") {
 						blakeIds = append(blakeIds, strings.TrimSuffix(tag, "-blake"))
-						break
+					}
+
+					if strings.HasSuffix(tag, d.cloudInventory.CloudDomain) {
+						stackNames = append(stackNames, strings.TrimSuffix(tag, "." + d.cloudInventory.CloudDomain))
 					}
 				}
 			}
@@ -120,6 +124,14 @@ func (d *CloudVmsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make request for vm vars, got error: %s", err))
 		return
 	}
+
+	// fetch related inventories
+	piresp, err := client.GetPxcInventories(ctx, &pb.GetPxcInventoriesRequest{StackNames: stackNames, TargetPve: d.cloudInventory.TargetPve, CloudDomain: d.cloudInventory.CloudDomain})
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable make request for pxc inventories, got error: %s", err))
+		return
+	}
+	// todo: maybe there is a better way but for now we add it for each machine for convinience reasons
 
 	// iterate again and add vars
 	for _, machine := range machines {
@@ -139,8 +151,18 @@ func (d *CloudVmsDataSource) Read(ctx context.Context, req datasource.ReadReques
 							decoder.Decode(&blakeVars)
 							machine["blake_vars"] = blakeVars
 						}
-						break
 					}
+
+					if strings.HasSuffix(tag, d.cloudInventory.CloudDomain) {
+						if pxcInventory, ok := piresp.StackInventories[strings.TrimSuffix(tag, "." + d.cloudInventory.CloudDomain)]; ok {
+							decoder := json.NewDecoder(strings.NewReader(pxcInventory))
+
+							var pxcInventory map[string]interface{}
+							decoder.Decode(&pxcInventory)
+							machine["pxc_inventory"] = pxcInventory
+						}
+					}
+					
 				}
 			}
 		}

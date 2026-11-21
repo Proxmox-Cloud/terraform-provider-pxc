@@ -35,6 +35,7 @@ const (
 	CloudService_GetPveInventory_FullMethodName       = "/protos.CloudService/GetPveInventory"
 	CloudService_GetCloudDomain_FullMethodName        = "/protos.CloudService/GetCloudDomain"
 	CloudService_GetVmVarsBlake_FullMethodName        = "/protos.CloudService/GetVmVarsBlake"
+	CloudService_GetPxcInventories_FullMethodName     = "/protos.CloudService/GetPxcInventories"
 	CloudService_GetDnsARecordSet_FullMethodName      = "/protos.CloudService/GetDnsARecordSet"
 	CloudService_CreateExternalAcmeTls_FullMethodName = "/protos.CloudService/CreateExternalAcmeTls"
 	CloudService_DeleteExternalAcmeTls_FullMethodName = "/protos.CloudService/DeleteExternalAcmeTls"
@@ -63,6 +64,7 @@ type CloudServiceClient interface {
 	GetPveInventory(ctx context.Context, in *GetPveInventoryRequest, opts ...grpc.CallOption) (*GetPveInventoryResponse, error)
 	GetCloudDomain(ctx context.Context, in *GetCloudDomainRequest, opts ...grpc.CallOption) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(ctx context.Context, in *GetVmVarsBlakeRequest, opts ...grpc.CallOption) (*GetVmVarsBlakeResponse, error)
+	GetPxcInventories(ctx context.Context, in *GetPxcInventoriesRequest, opts ...grpc.CallOption) (*GetPxcInventoriesResponse, error)
 	GetDnsARecordSet(ctx context.Context, in *GetDnsARecordSetRequest, opts ...grpc.CallOption) (*GetDnsARecordSetResponse, error)
 	CreateExternalAcmeTls(ctx context.Context, in *CreateExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error)
 	DeleteExternalAcmeTls(ctx context.Context, in *DeleteExternalAcmeTlsRequest, opts ...grpc.CallOption) (*ExternalAcmeTlsResponse, error)
@@ -239,6 +241,16 @@ func (c *cloudServiceClient) GetVmVarsBlake(ctx context.Context, in *GetVmVarsBl
 	return out, nil
 }
 
+func (c *cloudServiceClient) GetPxcInventories(ctx context.Context, in *GetPxcInventoriesRequest, opts ...grpc.CallOption) (*GetPxcInventoriesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPxcInventoriesResponse)
+	err := c.cc.Invoke(ctx, CloudService_GetPxcInventories_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *cloudServiceClient) GetDnsARecordSet(ctx context.Context, in *GetDnsARecordSetRequest, opts ...grpc.CallOption) (*GetDnsARecordSetResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetDnsARecordSetResponse)
@@ -319,6 +331,7 @@ type CloudServiceServer interface {
 	GetPveInventory(context.Context, *GetPveInventoryRequest) (*GetPveInventoryResponse, error)
 	GetCloudDomain(context.Context, *GetCloudDomainRequest) (*GetCloudDomainResponse, error)
 	GetVmVarsBlake(context.Context, *GetVmVarsBlakeRequest) (*GetVmVarsBlakeResponse, error)
+	GetPxcInventories(context.Context, *GetPxcInventoriesRequest) (*GetPxcInventoriesResponse, error)
 	GetDnsARecordSet(context.Context, *GetDnsARecordSetRequest) (*GetDnsARecordSetResponse, error)
 	CreateExternalAcmeTls(context.Context, *CreateExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error)
 	DeleteExternalAcmeTls(context.Context, *DeleteExternalAcmeTlsRequest) (*ExternalAcmeTlsResponse, error)
@@ -382,6 +395,9 @@ func (UnimplementedCloudServiceServer) GetCloudDomain(context.Context, *GetCloud
 }
 func (UnimplementedCloudServiceServer) GetVmVarsBlake(context.Context, *GetVmVarsBlakeRequest) (*GetVmVarsBlakeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetVmVarsBlake not implemented")
+}
+func (UnimplementedCloudServiceServer) GetPxcInventories(context.Context, *GetPxcInventoriesRequest) (*GetPxcInventoriesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPxcInventories not implemented")
 }
 func (UnimplementedCloudServiceServer) GetDnsARecordSet(context.Context, *GetDnsARecordSetRequest) (*GetDnsARecordSetResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDnsARecordSet not implemented")
@@ -710,6 +726,24 @@ func _CloudService_GetVmVarsBlake_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudService_GetPxcInventories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPxcInventoriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudServiceServer).GetPxcInventories(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudService_GetPxcInventories_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudServiceServer).GetPxcInventories(ctx, req.(*GetPxcInventoriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CloudService_GetDnsARecordSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetDnsARecordSetRequest)
 	if err := dec(in); err != nil {
@@ -888,6 +922,10 @@ var CloudService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVmVarsBlake",
 			Handler:    _CloudService_GetVmVarsBlake_Handler,
+		},
+		{
+			MethodName: "GetPxcInventories",
+			Handler:    _CloudService_GetPxcInventories_Handler,
 		},
 		{
 			MethodName: "GetDnsARecordSet",

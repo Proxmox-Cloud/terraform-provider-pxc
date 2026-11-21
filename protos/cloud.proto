@@ -21,6 +21,7 @@ service CloudService {
   rpc GetPveInventory(GetPveInventoryRequest) returns (GetPveInventoryResponse);
   rpc GetCloudDomain(GetCloudDomainRequest) returns (GetCloudDomainResponse);
   rpc GetVmVarsBlake(GetVmVarsBlakeRequest) returns (GetVmVarsBlakeResponse);
+  rpc GetPxcInventories(GetPxcInventoriesRequest) returns (GetPxcInventoriesResponse);
   rpc GetDnsARecordSet(GetDnsARecordSetRequest) returns (GetDnsARecordSetResponse);
   rpc CreateExternalAcmeTls(CreateExternalAcmeTlsRequest) returns (ExternalAcmeTlsResponse);
   rpc DeleteExternalAcmeTls(DeleteExternalAcmeTlsRequest) returns (ExternalAcmeTlsResponse);
@@ -179,6 +180,16 @@ message GetVmVarsBlakeRequest {
 
 message GetVmVarsBlakeResponse {
   map<string, string> blake_id_vars = 1;
+}
+
+message GetPxcInventoriesRequest {
+  string target_pve = 1;
+  string cloud_domain = 2;
+  repeated string stack_names = 3;
+}
+
+message GetPxcInventoriesResponse {
+  map<string, string> stack_inventories = 1;
 }
 
 message GetCloudDomainRequest {

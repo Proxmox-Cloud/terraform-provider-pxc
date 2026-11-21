@@ -241,6 +241,28 @@ class CloudServiceServicer(cloud_pb2_grpc.CloudServiceServicer):
             }
         )
 
+    async def GetPxcInventories(self, request, context):
+        stack_names = request.stack_names
+        target_pve = request.target_pve
+        cloud_domain = request.cloud_domain
+
+        online_pve_host, jump_host = get_online_pve_host_from_target_pve(
+            target_pve, skip_py_cloud_check=True
+        )
+
+        pxrpc = await self.get_pxrpc(online_pve_host, jump_host)
+
+        stack_names_json = json.dumps(list(stack_names))
+        pxc_inventories = await pxrpc.get_pxc_inventories(stack_names_json, cloud_domain)
+
+        return cloud_pb2.GetPxcInventoriesResponse(
+           stack_inventories={
+               stack: json.dumps(inventory)
+               for stack, inventory in json.loads(pxc_inventories).items()
+           } 
+        )
+
+
     async def GetCephAccess(self, request, context):
         target_pve = request.target_pve
 
